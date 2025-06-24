@@ -1,0 +1,728 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZRC1_22_01F01</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZRC1_22_01F01</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include ZRC1_22_01F01</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include          ZRC1_22_01F01</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form get_data</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM get_data .
+
+<font color ="#0000FF">*--ztc1_docu_22에서 main data를 select해온다</font>
+<font color ="#0000FF">* alv에서 데이터 수정했을 때 타임스탬프 세팅을 위해서 타임스탬프도 select함</font>
+
+  CLEAR: gt_data, gs_data.
+  SELECT ryear rbukrs belnr racct remark hsl rtcur post_yn
+         erdat ernam erzet aedat aenam aezet
+    INTO CORRESPONDING FIELDS OF TABLE gt_data
+    FROM ztc1_docu_22.
+
+<font color ="#0000FF">*--만약 gt_data에 데이터가 존재하지 않으면 메세지를 'E' 타입으로 출력한다.</font>
+  IF gt_data IS INITIAL.
+    MESSAGE s005 DISPLAY LIKE 'E'.
+    EXIT.
+  ENDIF.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form get_sub_data</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM get_sub_data .
+
+<font color ="#0000FF">*--skat 테이블에서 sub data를 select한다</font>
+<font color ="#0000FF">*--text field를 가져올 때는 where절에 spras EQ sy-langu 조건을 줘야 한다.</font>
+
+  CLEAR: gt_skat, gs_skat.
+  SELECT saknr txt50
+    INTO CORRESPONDING FIELDS OF TABLE gt_skat
+    FROM skat
+    WHERE spras EQ sy-langu
+    AND   ktopl EQ 'INT'.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form make_display_data</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM make_display_data .
+
+<font color ="#0000FF">*--text field를 세팅한다</font>
+
+  DATA: lv_tabix TYPE sy-tabix, "sy-tabix를 백업할 지역 변수
+        lv_cnt   TYPE i.        "조회된 데이터 건 수를 출력하기 위한 변수
+  SORT gt_skat BY saknr ASCENDING. "gt_skat을 saknr을 기준으로 오름차순 정렬함
+
+<font color ="#0000FF">*--gt_data table을 한 줄씩 가져온다</font>
+  LOOP AT gt_data INTO gs_data.
+
+    "sy-tabix값을 백업한다
+    lv_tabix = sy-tabix.
+
+    "READ TABLE 구문으로 gt_skat를 한 줄씩 가져오며
+    "gs_data-racct와 gs_skat-saknr이 일치하는 행을 찾는다
+    CLEAR: gs_skat.
+    READ TABLE gt_skat INTO gs_skat WITH KEY saknr = gs_data-racct
+                                    BINARY SEARCH.
+
+    "gs_data-racct와 gs_skat-saknr이 일치하는 행을 찾으면
+    "gs_skat의 txt50필드값을 가져와 gs_data-txt50에 담는다
+    IF sy-subrc = 0.
+      gs_data-txt50 = gs_skat-txt50.
+    ENDIF.
+
+    "gs_data의 txt50 필드 값이 번경되었기 때문에
+    "modify 구문으로 변경된 gs_data를 gt_data에 반영시킨다.
+    MODIFY gt_data FROM gs_data INDEX lv_tabix TRANSPORTING txt50.
+
+<font color ="#0000FF">*--set data count</font>
+    lv_cnt = lines( gt_data ).
+    "dbcnt로 조회 건수를 보여주면 실제 db에 있는 data 건수와 다르게 나올 수 있어서
+    "lines( itab ) 내장 함수를 사용해야 함.
+    MESSAGE s003 WITH lv_cnt.
+    " 0 건의 데이터가 조회되었습니다.
+
+  ENDLOOP.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form display_screen</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM display_screen .
+
+  "실행할 때마다 오브젝트가 계속 생성되지 않도록
+  "go_container 오브젝트가 NOT BOUND일 때 아래의 로직을 수행한다.
+  IF go_container IS NOT BOUND.
+
+<font color ="#0000FF">*--field catalog 세팅</font>
+    CLEAR: gs_fcat, gt_fcat.
+    PERFORM set_fcat USING: 'X' 'RYEAR'   'ZTC1_DOCU_22' 'C' ' ',
+                            'X' 'RBUKRS'  'ZTC1_DOCU_22' 'C' ' ',
+                            'X' 'BELNR'   'ZTC1_DOCU_22' 'C' ' ',
+                            'X' 'RACCT'   'ZTC1_DOCU_22' ' ' ' ',
+                            ' ' 'TXT50'   'SKAT'         ' ' 'X',
+                            ' ' 'REMARK'  'ZTC1_DOCU_22' ' ' 'X',
+                            ' ' 'HSL'     'ZTC1_DOCU_22' ' ' ' ',
+                            ' ' 'RTCUR'   'ZTC1_DOCU_22' ' ' ' ',
+                            ' ' 'POST_YN' 'ZTC1_DOCU_22' ' ' ' ',
+                            ' ' 'ERDAT'   'ZTC1_DOCU_22' ' ' ' ',
+                            ' ' 'ERNAM'   'ZTC1_DOCU_22' ' ' ' ',
+                            ' ' 'ERZET'   'ZTC1_DOCU_22' ' ' ' '.
+
+    PERFORM set_layout. "layout 세팅
+    PERFORM exclude_toolbar. "toolbar에서 제거할 버튼 세팅
+    PERFORM create_object. "오브젝트 생성
+
+<font color ="#0000FF">*--event 설치</font>
+    SET HANDLER : lcl_event_handler=&gt;modify_value FOR go_alv_grid,
+                  lcl_event_handler=&gt;edit_toolbar FOR go_alv_grid,
+                  lcl_event_handler=&gt;user_command FOR go_alv_grid.
+
+<font color ="#0000FF">*--alv 띄우기</font>
+    CALL METHOD go_alv_grid-&gt;set_table_for_first_display
+      EXPORTING
+        is_variant           = gs_variant "현재 수행하는 프로그램의 아이디
+        i_save               = 'A' "Save layout, A: ALl
+        i_default            = 'X' "Using ALV default layout
+        is_layout            = gs_layout "ALV를 꾸며주는 역할(간격 최적화, line 얼룩무늬)
+        it_toolbar_excluding = gt_ui_functions "Toolbar에서 제거할 버튼들
+      CHANGING
+        it_outtab            = gt_data "ALV에서 출력할 테이블
+        it_fieldcatalog      = gt_fcat. "field catalog
+
+<font color ="#0000FF">*--register_event</font>
+    PERFORM register_event.
+
+  ENDIF.
+
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form set_fcat</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      --&gt; P_</font>
+<font color ="#0000FF">*&      --&gt; P_</font>
+<font color ="#0000FF">*&      --&gt; P_</font>
+<font color ="#0000FF">*&      --&gt; P_</font>
+<font color ="#0000FF">*&      --&gt; P_</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM set_fcat  USING pv_key pv_field pv_table pv_just pv_emph.
+
+<font color ="#0000FF">*--parameter를 받아 field catalog를 세팅함</font>
+
+  gs_fcat-key = pv_key. "PK 지정
+  gs_fcat-fieldname = pv_field. "참조할 인터널 테이블의 필드명
+  gs_fcat-ref_table = pv_table. "해당 필드가 속해있는 인터널 테이블의 이름
+  gs_fcat-just = pv_just. "데이터를 정렬해서 보여줌, 데이터의 길이가 일정하면 센터정렬
+  "C center R right L left,
+  "공백 주면 default값으로 문자는 왼쪽 정렬, 숫자는 오른쪽 정렬이 들어감.
+  gs_fcat-emphasize = pv_emph. "강조, 초록색으로 출력
+
+<font color ="#0000FF">*--금액 필드인 경우 통화키 정보를 가지고 있는 필드명을 세팅</font>
+  CASE pv_field.
+    WHEN 'HSL'.
+      gs_fcat-cfieldname = 'RTCUR'.
+  ENDCASE.
+
+<font color ="#0000FF">*--세팅된 gs_fcat을 gt_fcat에 추가함.</font>
+  APPEND gs_fcat TO gt_fcat.
+  CLEAR gs_fcat.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form set_layout</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM set_layout .
+
+  gs_layout-zebra = abap_true. "line 얼룩무늬
+  gs_layout-cwidth_opt = 'A'. "A: auto, ALV기 refresh될 때마다 간격 최적화해줌
+  gs_layout-sel_mode = 'D'. "multiple line selection
+  gs_layout-stylefname = 'CELL_TAB'. "alv eidt style을 줄 필드로 cell_Tab을 지정함
+
+  gs_variant-report = sy-repid. "현재 수행하는 프로그램의 아이디
+  gs_variant-handle = 'ALV1'. "ALV id, 임의의 유니크한 값을 부여함
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form create_object</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM create_object .
+
+<font color ="#0000FF">*--container object 생성</font>
+  CREATE OBJECT go_container
+    EXPORTING
+      side      = go_container-&gt;dock_at_left
+      extension = 5000.
+<font color ="#0000FF">*docking container 클래스 안의 dock_at_left라는</font>
+<font color ="#0000FF">*attribute를 사용하는 것이므로 인스턴스를 사용해서 접근해야 함.</font>
+<font color ="#0000FF">*dock_at_left는 왼쪽부터 컨테이너를 쳐주는 거고 right를 써도 상관 없음.</font>
+<font color ="#0000FF">*extension.= 컨테이너를 얼마나 확장시킬 것인지.</font>
+<font color ="#0000FF">*스크린을 꽉 채우기 위해서 수치를 5000으로 주었음.</font>
+
+<font color ="#0000FF">*--ALV 오브젝트 생성</font>
+  CREATE OBJECT go_alv_grid
+    EXPORTING
+      i_parent = go_container.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form exclude_toolbar</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM exclude_toolbar .
+
+  DATA: ls_ui_functions TYPE ui_func.
+
+  "tool bar의 필요없는 버튼을 제거.
+  "제거할 버튼을 gt_ui_functions에 넣음.
+
+  ls_ui_functions = cl_gui_alv_grid=&gt;mc_fc_loc_undo.
+  APPEND ls_ui_functions TO gt_ui_functions.
+  ls_ui_functions = cl_gui_alv_grid=&gt;mc_fc_loc_copy.
+  APPEND ls_ui_functions TO gt_ui_functions.
+  ls_ui_functions = cl_gui_alv_grid=&gt;mc_fc_loc_copy_row.
+  APPEND ls_ui_functions TO gt_ui_functions.
+  ls_ui_functions = cl_gui_alv_grid=&gt;mc_fc_loc_cut.
+  APPEND ls_ui_functions TO gt_ui_functions.
+  ls_ui_functions = cl_gui_alv_grid=&gt;mc_fc_loc_delete_row.
+  APPEND ls_ui_functions TO gt_ui_functions.
+  ls_ui_functions = cl_gui_alv_grid=&gt;mc_fc_loc_insert_row.
+  APPEND ls_ui_functions TO gt_ui_functions.
+  ls_ui_functions = cl_gui_alv_grid=&gt;mc_fc_loc_append_row.
+  APPEND ls_ui_functions TO gt_ui_functions.
+  ls_ui_functions = cl_gui_alv_grid=&gt;mc_fc_loc_paste.
+  APPEND ls_ui_functions TO gt_ui_functions.
+  ls_ui_functions = cl_gui_alv_grid=&gt;mc_fc_loc_paste_new_row.
+  APPEND ls_ui_functions TO gt_ui_functions.
+  ls_ui_functions = cl_gui_alv_grid=&gt;mc_fc_refresh.
+  APPEND ls_ui_functions TO gt_ui_functions.
+  ls_ui_functions = cl_gui_alv_grid=&gt;mc_fc_auf.
+  APPEND ls_ui_functions TO gt_ui_functions.
+  ls_ui_functions = cl_gui_alv_grid=&gt;mc_fc_average.
+  APPEND ls_ui_functions TO gt_ui_functions.
+  ls_ui_functions = cl_gui_alv_grid=&gt;mc_fc_print.
+  APPEND ls_ui_functions TO gt_ui_functions.
+  ls_ui_functions = cl_gui_alv_grid=&gt;mc_fc_graph.
+  APPEND ls_ui_functions TO gt_ui_functions.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form set_screen</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM set_screen .
+
+<font color ="#0000FF">*--각 필드별로 편집/조회 모드 지정</font>
+<font color ="#0000FF">* alv는 기본적으로 조회 모드이기 때문에 조건에 따라 편집 모드로 여는 것만 주고,</font>
+<font color ="#0000FF">* 조회 모드 (읽기 전용)은 따로 지정할 필요가 없음</font>
+
+  DATA: lv_tabix TYPE sy-tabix, "sy-tabix를 백업할 지역 변수
+        ls_style TYPE lvc_s_styl. "style 변수
+
+<font color ="#0000FF">*--gt_data를 한 줄씩 읽어오면서 cell_tab 필드를 수정함</font>
+<font color ="#0000FF">* pk 필드, 텍스트 필드, 타임 스탬프를 제외한 필드를 편집 가능하게 한다.</font>
+
+  LOOP AT gt_data INTO gs_data.
+
+    lv_tabix = sy-tabix. "sy-tabix 백업
+
+    CLEAR: ls_style, gs_data-cell_tab.
+
+    ls_style-fieldname = 'RACCT'. "'RACCT' 필드를
+    ls_style-style = cl_gui_alv_grid=&gt;mc_style_enabled. "편집 가능하게 함
+    INSERT ls_style INTO TABLE gs_data-cell_tab.
+    "style을 gs_data-cell_tab에 저장
+
+    "cl_gui_alv_grid=&gt;mc_style_enabled 형식으로 호출하는 이유
+    "객체 생성 이후엔 instance→method로 할 수도 있지만
+    "instance/static 혼용해서 쓰는 건
+    "오류 발생 가능성 높으니 항상 static 타입처럼 class⇒method 호출하는 걸 권장
+
+    CLEAR ls_style.
+    ls_style-fieldname = 'REMARK'. "Remark필드를
+    ls_style-style = cl_gui_alv_grid=&gt;mc_style_enabled. "편집 가능
+    INSERT ls_style INTO TABLE gs_data-cell_tab. "cell_tab에 저장
+
+    CLEAR ls_style.
+    ls_style-fieldname = 'HSL'. "hsl 필드
+    ls_style-style = cl_gui_alv_grid=&gt;mc_style_enabled. "편집 가능
+    INSERT ls_style INTO TABLE gs_data-cell_tab. "cell_tab에 저장
+
+    CLEAR ls_style.
+    ls_style-fieldname = 'RTCUR'. "rtcur 필드
+    ls_style-style = cl_gui_alv_grid=&gt;mc_style_enabled."편집 가능
+    INSERT ls_style INTO TABLE gs_data-cell_tab. "cell_tab에 저장
+
+    CLEAR ls_style.
+    ls_style-fieldname = 'POST_YN'. "post_yn 필드
+    ls_style-style = cl_gui_alv_grid=&gt;mc_style_enabled. "편집 가능
+    INSERT ls_style INTO TABLE gs_data-cell_tab. "cell_tab에 저장
+
+    MODIFY gt_data FROM gs_data INDEX lv_tabix TRANSPORTING cell_tab.
+    "lv_tabix행의 gs_data의 cell_tab이 변경되었기 때문에
+    "변경된 값을 gt_data에 반영함.
+
+  ENDLOOP.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form register_event</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM register_event .
+
+<font color ="#0000FF">*--Edit on</font>
+
+<font color ="#0000FF">* go_alv_grid 인스턴스로 set_ready_for_input 메소드와</font>
+<font color ="#0000FF">* register_edit_event 메소드를 참조함</font>
+
+  CALL METHOD go_alv_grid-&gt;set_ready_for_input
+    EXPORTING
+      i_ready_for_input = 1. "1: edit on 0: edit off
+
+  CALL METHOD go_alv_grid-&gt;register_edit_event
+    EXPORTING
+      i_event_id = cl_gui_alv_grid=&gt;mc_evt_modified.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form save_data</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM save_data .
+
+<font color ="#0000FF">*--save 버튼이 클릭되었을 때 동작할 서브루틴</font>
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* ITAB의 데이터를 DBTAB에 넣어야 할 때</font>
+<font color ="#0000FF">* DB Table의 layout과 ITAB의 layout은 100% 동일해야 함</font>
+<font color ="#0000FF">* 따라서 저장을 위한 테이블을 따로 만듦</font>
+<font color ="#0000FF">**********************************************************************</font>
+
+  DATA: lt_save   TYPE TABLE OF ztc1_docu_22,
+        ls_save   TYPE ztc1_docu_22,
+        lv_tabix  TYPE sy-tabix,
+        lv_answer.
+
+<font color ="#0000FF">*--ALV 상에서 변경된 데이터가 있는지 체크 후 ITAB에 반영.</font>
+<font color ="#0000FF">* 입력 데이터의 누락 없이 저장하기 위해서 save_data 로직에서 꼭 호출해야 하는 메소드.</font>
+  CALL METHOD go_alv_grid-&gt;check_changed_data.
+
+<font color ="#0000FF">*--modi_yn필드를 이용해 변경사항이 있는지 확인</font>
+  CLEAR gs_data.
+  READ TABLE gt_data INTO gs_data WITH KEY modi_yn = abap_true.
+
+  IF ( sy-subrc NE 0 ) AND ( gt_delt IS INITIAL ).
+    MESSAGE s001 WITH '변경사항이 없습니다'.
+    EXIT.
+  ENDIF.
+
+
+<font color ="#0000FF">*-- 데이터를 저장하기 전 사용자에게 확인(CONFIRM)을 받은 후 처리한다</font>
+  PERFORM popup_confirm CHANGING lv_answer.
+
+<font color ="#0000FF">*--사용자가 팝업에서 yes버튼을 눌렀는지 확인</font>
+  "yes버튼을 눌렀을 때만 아래의 로직 수행
+  CHECK lv_answer EQ '1'.
+
+<font color ="#0000FF">*-- Move data for save "쓸모없는 필드를 제외하고는 값이 전부 채워짐</font>
+  MOVE-CORRESPONDING gt_data TO lt_save.
+
+<font color ="#0000FF">*--set time stamp</font>
+  "gt_data에 있는 어떤 행의 mody_yn 필드에 'X'값이 있으면 타임 스탬프를 세팅함
+  LOOP AT gt_data INTO gs_data WHERE modi_yn EQ abap_true.
+
+    lv_tabix = sy-tabix.
+
+    IF ls_save-erdat IS INITIAL.
+      gs_data-erdat = sy-datum.
+      gs_data-ernam = sy-uname.
+      gs_data-erzet = sy-uzeit.
+    ELSE.
+      gs_data-aedat = sy-datum.
+      gs_data-aenam = sy-uname.
+      gs_data-aezet = sy-uzeit.
+    ENDIF.
+
+    MODIFY gt_data FROM gs_data INDEX lv_tabix
+                                TRANSPORTING erdat ernam erzet
+                                             aedat aenam aezet.
+
+  ENDLOOP.
+
+<font color ="#0000FF">*--삭제 대상이 있으면 삭제</font>
+  IF gt_delt IS NOT INITIAL.
+    DELETE ztc1_docu_22 FROM TABLE gt_delt.
+  ENDIF.
+
+<font color ="#0000FF">*--save data</font>
+  MODIFY ztc1_docu_22 FROM TABLE lt_save.
+  "lt_save테이블을 ztc1_docu_22 DB테이블에 반영함
+  IF sy-subrc EQ 0. "성공적으로 modify되면
+    MESSAGE s004. "데이터가 성공적으로 저장되었습니다, 메세지 출력
+    COMMIT WORK.
+  ELSE.
+    ROLLBACK WORK.
+  ENDIF.
+
+  PERFORM set_screen. "필드별 편집 속성
+
+<font color ="#0000FF">*--Refresh ALV</font>
+  PERFORM refresh_table.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form popup_confirm</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      &lt;-- LV_ANSWER</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM popup_confirm  CHANGING pv_answer.
+
+<font color ="#0000FF">*--저장 버튼을 눌렀을 때 띄울 팝업.</font>
+
+  CALL FUNCTION 'POPUP_TO_CONFIRM'
+    EXPORTING
+      titlebar              = 'Data save dialog'
+      text_question         = '변경사항을 저장하시겠습니까?'
+      text_button_1         = 'Yes'
+      icon_button_1         = 'ICON_OKAY'
+      text_button_2         = 'No'
+      icon_button_2         = 'ICON_CANCEL'
+      default_button        = '2'
+      display_cancel_button = 'X' "cancle 버튼을 보여줄지
+    IMPORTING
+      answer                = pv_answer. "yes: 1, no: 2, Cancel: A
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form refresh_table</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM refresh_table .
+
+<font color ="#0000FF">*--ALV와 ITAB의 동기화 (ITAB → ALV)</font>
+
+  DATA: ls_stable TYPE lvc_s_stbl.
+
+<font color ="#0000FF">*-- ALV에서 현재 Cursor 위치를 유지함 (ROW, COL을 모두 안정화 시킨다)</font>
+  ls_stable-row = abap_true.
+  ls_stable-col = abap_true.
+
+<font color ="#0000FF">*-- Refresh ALV</font>
+  CALL METHOD go_alv_grid-&gt;refresh_table_display
+  "itab → alv로 데이터를 새로 고침 하는 메소드.
+    EXPORTING
+      is_stable = ls_stable.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form handle_modify_value</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      --&gt; E_MODIFIED</font>
+<font color ="#0000FF">*&      --&gt; ET_GOOD_CELLS</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM handle_modify_value  USING    pv_modified
+                                   pt_good_cells TYPE lvc_t_modi.
+<font color ="#0000FF">*-- loop를 돌면서 변경된 행의 modi_yn에 x값을 넣음.</font>
+  DATA: ls_good_cells TYPE lvc_s_modi.
+
+  "check구문의 내용을 만족하지 않으면 EXIT함.
+  "ALV에서 실제로 Data 변경이 일어났는지 확인
+  CHECK pv_modified IS NOT INITIAL.
+
+<font color ="#0000FF">*--set changed flag</font>
+  LOOP AT pt_good_cells INTO ls_good_cells.
+    gs_data-modi_yn = abap_true.
+    MODIFY gt_data FROM gs_data INDEX ls_good_cells-row_id
+                                TRANSPORTING modi_yn.
+  ENDLOOP.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form handle_edit_toolbar</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      --&gt; E_OBJECT</font>
+<font color ="#0000FF">*&      --&gt; E_INTERACTIVE</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM handle_edit_toolbar  USING    po_object TYPE REF TO cl_alv_event_toolbar_set
+                                   pv_interactive.
+<font color ="#0000FF">*--행 추가, 삭제, 토클 버튼을 추가</font>
+
+  DATA: lv_disabled.
+
+<font color ="#0000FF">*--행 추가, 행 삭제 버튼의 경우 gv_mode가 D일 때 (조회모드일 때) 비활성화되도록 함</font>
+  IF gv_mode EQ 'D'.
+    lv_disabled = abap_true.
+  ENDIF.
+
+  CLEAR gs_button.
+  gs_button-butn_type = '3'. "구분선 그리기
+  APPEND gs_button TO po_object-&gt;mt_toolbar.
+
+<font color ="#0000FF">*MT_toolbar : 여러 개의 버튼에 대한 정보가 필요하기 때문에 테이블 형태임.</font>
+<font color ="#0000FF">*e_object라는 인스턴스를 통해서 접근해야 함. ( e_object = alv_toolbar_set)</font>
+
+  CLEAR gs_button.
+  gs_button-function  = 'TOGL'.  "토글 버튼의 okcode
+  gs_button-icon      = icon_toggle_display_change.
+  gs_button-quickinfo = 'display &lt;-&gt; change'.
+  APPEND gs_button TO po_object-&gt;mt_toolbar.
+
+<font color ="#0000FF">*function = alv에서 사용할 okcode를 세팅함. (스크린의 okcode와는 다른 영역)</font>
+<font color ="#0000FF">*icon = 버튼의 아이콘</font>
+<font color ="#0000FF">*quickinfo = 버튼에 마우스 커서를 올려놓았을 때 정보가 뜰 말풍선</font>
+<font color ="#0000FF">*butn_type = 버튼 타입. 3 or 공백. 3은 버튼과 버튼 사이에 구분자 | 를 줄 때.</font>
+<font color ="#0000FF">*           ( 비슷한 기능의 버튼 그룹을 구분) , 공백은 구분자가 없는 일반 버튼</font>
+<font color ="#0000FF">*disabled = ‘X’ or 공백.  X 는 버튼이 보이지만 비활성. 공백은 enable.</font>
+<font color ="#0000FF">*text = 아이콘 옆에 뜰 그 버튼에 대한 설명.</font>
+
+  CLEAR gs_button.
+  gs_button-butn_type = '3'. "구분선 그리기
+  APPEND gs_button TO po_object-&gt;mt_toolbar.
+
+  CLEAR gs_button.
+  gs_button-function  = 'IROW'.  "행 추가
+  gs_button-icon      = icon_insert_row.
+  gs_button-quickinfo = 'insert row'.
+  gs_button-disabled  = lv_disabled. "D 모드일 땐 비활성화해야 하는 버튼
+  APPEND gs_button TO po_object-&gt;mt_toolbar.
+
+  CLEAR gs_button.
+  gs_button-function  = 'DROW'.  "행 삭제
+  gs_button-icon      = icon_delete_row.
+  gs_button-quickinfo = 'delete row'.
+  gs_button-disabled  = lv_disabled. "D 모드일 땐 비활성화해야 하는 버튼
+  APPEND gs_button TO po_object-&gt;mt_toolbar.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form handle_user_command</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      --&gt; E_UCOMM</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM handle_user_command  USING    pv_ucomm.
+
+<font color ="#0000FF">*--각각의 버튼이 눌렸을 때 pv_ucomm에 담긴 후 어떤 동작을 할 건지 작성</font>
+
+  CASE pv_ucomm.
+    WHEN 'TOGL'. "토글 버튼이 눌렸을 때 수행될 서브루틴
+      PERFORM toggle_change.
+    WHEN 'IROW'. "행추가 버튼이 눌렸을 때 수행될 서브루틴
+      PERFORM insert_row.
+    WHEN 'DROW'. "행삭제 버튼이 눌렸을 때 수행될 서브루틴
+      PERFORM delete_row.
+  ENDCASE.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form toggle_change</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM toggle_change .
+
+  CASE gv_mode.
+    WHEN 'E'. "현재 Edit 모드이면
+      gv_mode = 'D'. "gv_mode를 'D'로 변경하고
+      CALL METHOD go_alv_grid-&gt;set_ready_for_input
+        EXPORTING
+          i_ready_for_input = 0. "1: edit on, 0: edit off
+      "edit off함
+    WHEN 'D'. "현재 조회모드이면
+      gv_mode = 'E'.  "gv_mode를 'E'로 변경하고
+      CALL METHOD go_alv_grid-&gt;set_ready_for_input
+        EXPORTING
+          i_ready_for_input = 1. "1: edit on, 0: edit off
+      "edit on함
+  ENDCASE.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form insert_row</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM insert_row .
+
+<font color ="#0000FF">*--행을 추가할 때는</font>
+<font color ="#0000FF">* pk도 입력해야 하기 때문에 전체 필드를 오픈하기 위해서</font>
+<font color ="#0000FF">* style에 필드 정보를 주지 않고 그냥 편집 모드를 준 다음</font>
+<font color ="#0000FF">* gs_data-cell_tab에 insert함</font>
+
+  DATA: ls_style TYPE lvc_s_styl.
+
+  CLEAR gs_data.
+  ls_style-style = cl_gui_alv_grid=&gt;mc_style_enabled. "전체 필드 편집 가능
+  INSERT ls_style INTO TABLE gs_data-cell_tab.
+
+  APPEND gs_data TO gt_data.
+
+<font color ="#0000FF">*--Refresh ALV</font>
+  PERFORM refresh_table.
+  "행을 추가하고 refresh_table을 통해 ALV를 새로고침해야 함.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form delete_row</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM delete_row .
+
+  DATA: lt_roid TYPE lvc_t_roid,
+        ls_roid TYPE lvc_s_roid.
+
+<font color ="#0000FF">*-- 사용자가 선택한 행 정보를 받아온다.</font>
+  CALL METHOD go_alv_grid-&gt;get_selected_rows
+    IMPORTING
+      et_row_no = lt_roid.
+
+<font color ="#0000FF">*-- 삭제할 행을 선택하지 않고 delete row 버튼을 눌렀을 때 EXIT 처리.</font>
+  IF lt_roid IS INITIAL.
+    MESSAGE s001 WITH TEXT-e01 DISPLAY LIKE 'E'.
+    EXIT.
+  ENDIF.
+
+<font color ="#0000FF">*--index를 역순으로 정렬하여 밑부분 부터 삭제</font>
+  SORT lt_roid BY row_id DESCENDING.
+
+<font color ="#0000FF">*--delete row</font>
+  LOOP AT lt_roid INTO ls_roid.
+
+<font color ="#0000FF">*--삭제대상 데이터 backup</font>
+<font color ="#0000FF">*--삭제대상 데이터를 backup 테이블에 모아놓고,</font>
+    READ TABLE gt_data INTO gs_data INDEX ls_roid-row_id.
+    MOVE-CORRESPONDING gs_data TO gs_delt.
+    APPEND gs_delt TO gt_delt.
+    CLEAR gs_delt.
+
+<font color ="#0000FF">*--삭제대상 데이터를  itab에서 삭제</font>
+    DELETE gt_data INDEX ls_roid-row_id.
+  ENDLOOP.
+
+<font color ="#0000FF">*-- 삭제 후 Refresh ALV해서 ITAB → ALV 동기화함</font>
+  PERFORM refresh_table.
+
+ENDFORM.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 758
+</font>
+</body>
+</html>
