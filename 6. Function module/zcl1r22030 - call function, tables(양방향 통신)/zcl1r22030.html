@@ -1,0 +1,126 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZCL1R22030</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZCL1R22030</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  [CL1] Call function - TABLES</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Report ZCL1R22030</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+REPORT zcl1r22030 MESSAGE-ID zc1msg22.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* internal table and work area</font>
+<font color ="#0000FF">**********************************************************************</font>
+DATA: gt_spfli   TYPE TABLE OF spfli,
+      gs_scarr   TYPE scarr,
+      gs_spfli   TYPE spfli,
+      gt_sflight TYPE TABLE OF sflight.
+
+DATA: gs_bkpf TYPE bkpf,
+      gt_bseg TYPE TABLE OF bseg.
+
+DATA: gt_airline TYPE TABLE OF zscl1_air_22.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* common variable</font>
+<font color ="#0000FF">**********************************************************************</font>
+DATA: gv_message(50).
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* selection screen</font>
+<font color ="#0000FF">**********************************************************************</font>
+SELECTION-SCREEN BEGIN OF BLOCK pa1 WITH FRAME TITLE TEXT-t01.
+  PARAMETERS: pa_carr TYPE scarr-carrid.
+SELECTION-SCREEN END OF BLOCK pa1.
+
+SELECTION-SCREEN BEGIN OF BLOCK pa2 WITH FRAME TITLE TEXT-t02.
+  PARAMETERS: pa_bukrs TYPE bkpf-bukrs,
+              pa_gjahr TYPE bkpf-gjahr,
+              pa_belnr TYPE bkpf-belnr.
+SELECTION-SCREEN END OF BLOCK pa2.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* start of selection</font>
+<font color ="#0000FF">**********************************************************************</font>
+START-OF-SELECTION.
+
+<font color ="#0000FF">*--call function - air flight data</font>
+  call function <a href ="zfm_cl1_22_05/zfm_cl1_22_05.html">'ZFM_CL1_22_05'</a>
+    EXPORTING
+      iv_carrid  = pa_carr
+    IMPORTING
+      es_scarr   = gs_scarr
+      ev_message = gv_message
+    TABLES
+      et_spfli   = gt_spfli
+      et_airline = gt_airline.
+
+  IF gt_spfli IS INITIAL.
+    MESSAGE s002 WITH gv_message DISPLAY LIKE 'E'.
+  ENDIF.
+
+<font color ="#0000FF">*--call function - flight data</font>
+  call function <a href ="zfm_cl1_22_06/zfm_cl1_22_06.html">'ZFM_CL1_22_06'</a>
+    EXPORTING
+      iv_carrid  = pa_carr
+    IMPORTING
+      es_spfli   = gs_spfli
+      ev_message = gv_message
+    TABLES
+      et_sflight = gt_sflight.
+
+  IF gt_sflight IS INITIAL.
+    MESSAGE s002 WITH gv_message DISPLAY LIKE 'E'.
+  ENDIF.
+
+<font color ="#0000FF">*--call function - document data</font>
+  call function <a href ="zfm_cl1_22_07/zfm_cl1_22_07.html">'ZFM_CL1_22_07'</a>
+    EXPORTING
+      iv_bukrs   = pa_bukrs
+      iv_gjahr   = pa_gjahr
+      iv_belnr   = pa_belnr
+    IMPORTING
+      es_bkpf    = gs_bkpf
+      ev_message = gv_message
+    TABLES
+      et_bseg    = gt_bseg.
+
+  IF gt_bseg IS INITIAL.
+    MESSAGE s002 WITH gv_message DISPLAY LIKE 'E'.
+  ENDIF.
+
+  cl_demo_output=&gt;display( gt_bseg ).
+
+<font color ="#0000FF">*Text elements</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* T01 condition</font>
+<font color ="#0000FF">* T02 document condition</font>
+
+
+<font color ="#0000FF">*Selection texts</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* PA_BELNR D       .</font>
+<font color ="#0000FF">* PA_BUKRS D       .</font>
+<font color ="#0000FF">* PA_CARR D       .</font>
+<font color ="#0000FF">* PA_GJAHR D       .</font>
+
+
+<font color ="#0000FF">*Messages</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">* Message class: ZC1MSG22</font>
+<font color ="#0000FF">*002   &</font>
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

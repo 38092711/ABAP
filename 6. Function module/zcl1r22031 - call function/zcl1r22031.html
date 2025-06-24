@@ -1,0 +1,58 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZCL1R22031</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZCL1R22031</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  [CL1] 0204 function module ½Ç½À</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Report ZCL1R22031</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+
+include <a href ="zcl1r22031top.html">ZCL1R22031TOP</a>.    " Global Data
+include <a href ="zcl1r22031s01.html">ZCL1R22031s01</a>.  " selection screen
+include <a href ="zcl1r22031f01.html">ZCL1R22031F01</a>.  " FORM-Routines
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">*INITIALIZATION</font>
+<font color ="#0000FF">**********************************************************************</font>
+INITIALIZATION.
+  PERFORM set_init_value.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">*START-OF-SELECTION</font>
+<font color ="#0000FF">**********************************************************************</font>
+START-OF-SELECTION.
+  PERFORM call_function.
+
+  cl_demo_output=&gt;display( gt_item ).
+
+<font color ="#0000FF">*Text elements</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* T01 condition</font>
+
+
+<font color ="#0000FF">*Selection texts</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* PA_BUKRS D       .</font>
+<font color ="#0000FF">* PA_GJAHR D       .</font>
+<font color ="#0000FF">* SO_BUDAT D       .</font>
+
+
+<font color ="#0000FF">*Messages</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">* Message class: ZC1MSG22</font>
+<font color ="#0000FF">*002   &</font>
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

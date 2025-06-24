@@ -1,0 +1,49 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZFM_CL1_22_04</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for function: ZFM_CL1_22_04</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  get antxt</b></font>
+<hr>
+<pre width="100">
+FUNCTION zfm_cl1_22_04.
+<font color ="#0000FF">*"----------------------------------------------------------------------</font>
+<font color ="#0000FF">*"*"Local Interface:</font>
+<font color ="#0000FF">*"  IMPORTING</font>
+<font color ="#0000FF">*"     REFERENCE(IV_STLAN) TYPE  STLAN</font>
+<font color ="#0000FF">*"     REFERENCE(IV_LANGU) TYPE  SY-LANGU</font>
+<font color ="#0000FF">*"  EXPORTING</font>
+<font color ="#0000FF">*"     REFERENCE(EV_ANTXT) TYPE  ANTXT</font>
+<font color ="#0000FF">*"     REFERENCE(EV_MESSAGE) TYPE  CHAR50</font>
+<font color ="#0000FF">*"     REFERENCE(EV_SUBRC) TYPE  SY-SUBRC</font>
+<font color ="#0000FF">*"  EXCEPTIONS</font>
+<font color ="#0000FF">*"      NOT_FOUND</font>
+<font color ="#0000FF">*"----------------------------------------------------------------------</font>
+
+<font color ="#0000FF">*       <a href ="global-zfm_cl1_22_04.html">Global data declarations</a></font>
+
+  SELECT SINGLE antxt
+    INTO ev_antxt
+    FROM t416t
+    WHERE stlan = iv_stlan
+    AND spras = iv_langu.
+
+  ev_subrc = sy-subrc.
+
+  IF ev_subrc NE 0.
+    ev_message = TEXT-e01.
+    RAISE not_found.
+  ENDIF.
+
+
+
+ENDFUNCTION.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>
