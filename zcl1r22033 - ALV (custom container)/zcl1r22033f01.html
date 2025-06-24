@@ -1,0 +1,203 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZCL1R22033F01</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZCL1R22033F01</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include ZCL1R22033F01</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include          ZCL1R22033F01</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form set_init_value</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM set_init_value .
+
+  so_carr-sign = 'I'.
+  so_carr-option = 'EQ'.
+  so_carr-low = 'LH'.
+  APPEND so_carr.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form get_base_data</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM get_base_data .
+
+  CLEAR gt_scarr.
+  SELECT carrid carrname currcode url
+    INTO CORRESPONDING FIELDS OF TABLE gt_scarr
+    FROM scarr
+    WHERE carrid IN so_carr.
+
+  IF gt_scarr IS INITIAL.
+    MESSAGE s002 DISPLAY LIKE 'E'.
+    STOP.
+  ENDIF.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form display_screen</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM display_screen .
+
+  DATA: ls_variant TYPE disvariant.
+
+<font color ="#0000FF">*--object를 생성한다</font>
+  IF go_container IS INITIAL.
+    PERFORM create_object.
+    PERFORM set_layout.
+    PERFORM set_field_catalog.
+
+<font color ="#0000FF">*--display ALV</font>
+    ls_variant-report = sy-repid. "현재 수행하고 있는 프로그램의 아이디를 내어주는 시스템 필드
+    ls_variant-handle = 'ALV1'. "ALV id
+
+
+    CALL METHOD go_alv_grid-&gt;set_table_for_first_display
+      EXPORTING
+        i_structure_name = 'SCARR'
+        "뿌리고자 하는 structure가 있으면 그 이름을 씀.  글로벌 타입만 가능.
+        is_variant       = ls_variant "ALV layout control(layout save, choice...)
+        i_save           = 'A' "Save layout A : ALL
+        i_default        = 'X' "Using ALV default layout
+        is_layout        = gs_layout "ALV를 꾸며주는 역할(간격 최적화, line 얼룩무늬 등)
+      CHANGING
+        it_outtab        = gt_scarr "뿌리고자 하는 internal table.
+        it_fieldcatalog  = gt_fcat.
+
+  ENDIF.
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form create_object</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM create_object .
+
+<font color ="#0000FF">*--create container</font>
+  CREATE OBJECT go_container
+    EXPORTING
+      container_name = 'MAIN_CONT'.
+
+<font color ="#0000FF">*--Create ALV Grid</font>
+  CREATE OBJECT go_alv_grid
+    EXPORTING
+      i_parent = go_container.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form set_layout</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM set_layout .
+
+<font color ="#0000FF">*-- set layout</font>
+  gs_layout-zebra = abap_true. " 'X'값에 대한 abap standard
+  gs_layout-cwidth_opt = abap_true.
+  gs_layout-sel_mode = 'D'. "multiple select.
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form make_body</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM make_body .
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">*  1.internal table에 coutry(10) 필드를 추가한다</font>
+<font color ="#0000FF">*  2.통화키가 'EUR'이면 country = 'Europe'</font>
+<font color ="#0000FF">*    통화키가 'USD'이면 country = 'America'</font>
+<font color ="#0000FF">*    위의 필드에 값을 채우고 alv에 display 한다</font>
+<font color ="#0000FF">*    필드의 위치는 맨 마지막에 위치시킨다.</font>
+<font color ="#0000FF">**********************************************************************</font>
+
+  DATA: lv_tabix TYPE sy-tabix.
+
+  LOOP AT gt_scarr INTO gs_scarr.
+
+    lv_tabix = sy-tabix.
+
+<font color ="#0000FF">*--통화키가 'USD'인 경우 ICON_WS_PLANE을 STATUS 필드에 세팅해준다</font>
+
+    CASE gs_scarr-currcode.
+      WHEN 'USD'.
+        gs_scarr-status = icon_ws_plane.
+        gs_scarr-country = 'America'.
+      WHEN 'EUR'.
+        gs_scarr-country = 'Europe'.
+    ENDCASE.
+
+    MODIFY gt_scarr FROM gs_scarr INDEX lv_tabix
+                                      TRANSPORTING status country.
+
+  ENDLOOP.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form set_field_catalog</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM set_field_catalog .
+
+  DATA lv_pos TYPE i.
+
+
+<font color ="#0000FF">*--alv에 display 할 필드를 정의한다</font>
+  CLEAR: gt_fcat, gs_fcat.
+
+  gs_fcat-key = abap_true.
+  gs_fcat-fieldname = 'STATUS'. "internal table field
+  gs_fcat-col_pos = 1.          "column position
+  gs_fcat-coltext = 'Status'.   "header text
+
+  APPEND gs_fcat TO gt_fcat.
+  CLEAR gs_fcat.
+
+  gs_fcat-fieldname = 'COUNTRY'.
+  gs_fcat-col_pos = 7.
+  gs_fcat-coltext = 'Country'.
+
+  APPEND gs_fcat TO gt_fcat.
+  CLEAR gs_fcat.
+
+ENDFORM.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>
