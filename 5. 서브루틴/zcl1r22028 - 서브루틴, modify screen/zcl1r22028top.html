@@ -1,0 +1,55 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZCL1R22028TOP</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZCL1R22028TOP</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include ZCL1R22028TOP</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include ZCL1R22028TOP                            - Report ZCL1R22028</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+REPORT ZCL1R22028 MESSAGE-ID zc1msg22.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* tables</font>
+<font color ="#0000FF">**********************************************************************</font>
+
+TABLES: bkpf, bseg, skat.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* internal table and work area</font>
+<font color ="#0000FF">**********************************************************************</font>
+
+DATA : BEGIN OF gs_data,
+  bukrs TYPE bkpf-bukrs,
+  belnr TYPE bkpf-belnr,
+  gjahr TYPE bkpf-gjahr,
+  buzei TYPE bseg-buzei,
+  bktxt TYPE bkpf-bktxt,
+  hkont TYPE bseg-hkont,
+  txt50 TYPE SKAT-txt50,
+  gsber TYPE bseg-gsber,
+  gtext TYPE TGSBT-gtext,
+  shkzg TYPE bseg-shkzg,
+  sgtxt TYPE bseg-sgtxt,
+  END OF gs_data,
+  gt_data like TABLE OF gs_data.
+
+DATA: gt_skat type TABLE of skat,
+      gs_skat TYPE SKAT,
+      gt_back TYPE TABLE of skat,
+      gs_back TYPE skat,
+      gt_TGSBT TYPE TABLE of TGSBT,
+      gs_TGSBT TYPE TGSBT,
+      gt_backup TYPE TABLE OF TGSBT,
+      gs_backup TYPE TGSBT.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>
