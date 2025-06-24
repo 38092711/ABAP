@@ -1,0 +1,97 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZCL1R22004</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZCL1R22004</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  [CL1] Program ZCL1R22004</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Report ZCL1R22004</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+REPORT zcl1r22004.
+
+<font color ="#0000FF">*--Structure</font>
+TYPES : BEGIN OF ts_data,
+          bukrs TYPE bkpf-bukrs, "Company Code
+          belnr TYPE bkpf-belnr, "Accounting Document Number
+          gjahr TYPE bkpf-gjahr, "Fiscal Year
+          buzei TYPE bseg-buzei, "Number of Line Item Within Accounting Document
+          budat TYPE bkpf-budat, "Posting Date in the Document
+          bktxt TYPE bkpf-bktxt, "Document Header Text
+          wrbtr TYPE bseg-wrbtr, "Amount in document currency
+          waers TYPE bkpf-waers, "Currency Key
+          sgtxt TYPE bseg-sgtxt, "Item Text
+        END OF ts_data.
+
+<font color ="#0000FF">*--Table type</font>
+TYPES tt_data TYPE TABLE OF ts_data.
+
+<font color ="#0000FF">*--work area</font>
+<font color ="#0000FF">*DATA : BEGIN OF gs_data,</font>
+<font color ="#0000FF">*         bukrs TYPE bkpf-bukrs, "Company Code</font>
+<font color ="#0000FF">*         belnr TYPE bkpf-belnr, "Accounting Document Number</font>
+<font color ="#0000FF">*         gjahr TYPE bkpf-gjahr, "Fiscal Year</font>
+<font color ="#0000FF">*         buzei TYPE bseg-buzei, "Number of Line Item Within Accounting Document</font>
+<font color ="#0000FF">*         budat TYPE bkpf-budat, "Posting Date in the Document</font>
+<font color ="#0000FF">*         bktxt TYPE bkpf-bktxt, "Document Header Text</font>
+<font color ="#0000FF">*         wrbtr TYPE bseg-wrbtr, "Amount in document currency</font>
+<font color ="#0000FF">*         waers TYPE bkpf-waers, "Currency Key</font>
+<font color ="#0000FF">*         sgtxt TYPE bseg-sgtxt, "Item Text</font>
+<font color ="#0000FF">*       END OF gs_data,</font>
+<font color ="#0000FF">*       gt_data LIKE TABLE OF gs_data.</font>
+
+<font color ="#0000FF">*--internal table</font>
+DATA : gs_data  TYPE ts_data,
+       gt_data  TYPE TABLE OF ts_data,
+       gt_data4 TYPE tt_data,
+       gt_data2 LIKE TABLE OF gs_data,
+       gt_data3 LIKE gt_data.
+
+
+CLEAR : gs_data, gt_data.
+gs_data-bukrs = '1000'.
+gs_data-belnr = '00100000007'.
+gs_data-gjahr = '2025'.
+gs_data-buzei = '0002'.
+gs_data-budat = sy-datum.
+gs_data-bktxt = 'Document header'.
+gs_data-wrbtr = 15000.
+gs_data-waers = 'KRW'.
+gs_data-sgtxt = 'Line item'.
+
+APPEND gs_data TO gt_data.
+
+CLEAR : gs_data.
+gs_data-bukrs = '1000'.
+gs_data-belnr = '00100000006'.
+gs_data-gjahr = '2024'.
+gs_data-buzei = '0001'.
+gs_data-budat = sy-datum.
+gs_data-bktxt = 'Document insert header'.
+gs_data-wrbtr = 7000.
+gs_data-waers = 'KRW'.
+gs_data-sgtxt = 'Line item insert'.
+
+INSERT gs_data INTO gt_data INDEX 1.
+
+CLEAR : gs_data.
+gs_data-bktxt = 'Document header updated'.
+gs_data-wrbtr = 12000.
+gs_data-waers = 'USD'.
+gs_data-sgtxt = 'line item updated'.
+
+MODIFY gt_data FROM gs_data INDEX 2 TRANSPORTING bktxt wrbtr waers sgtxt.
+
+cl_demo_output=&gt;display( gt_data ).
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

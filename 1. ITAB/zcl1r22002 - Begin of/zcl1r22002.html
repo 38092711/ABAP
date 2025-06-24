@@ -1,0 +1,204 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZCL1R22002</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZCL1R22002</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  [C1] Internal table ad Work area</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Report ZCL1R22002</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+REPORT zcl1r22002.
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* TYPES: Local type</font>
+<font color ="#0000FF">**********************************************************************</font>
+TYPES : BEGIN OF ts_airline,
+          carrid    TYPE scarr-carrid, "항공사 id
+          carrname  TYPE scarr-carrname, "항공사명
+          countryfr TYPE spfli-countryfr, "출발국가
+          countryto TYPE spfli-countryto, "도착국가
+        END OF ts_airline.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* Internal table and Work ara</font>
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">*-- Using local type structure</font>
+DATA : gt_airline TYPE TABLE OF ts_airline,
+       gs_airline TYPE ts_airline.
+
+DATA : gt_air1 LIKE gt_airline, "internal table을 참조하는 internal table
+       gt_air2 LIKE TABLE OF gs_airline. "work area를 참조하는 internal table
+
+<font color ="#0000FF">*-- Using global type</font>
+DATA : gt_scarr TYPE TABLE OF scarr,
+       gt_bkpf  TYPE TABLE OF bkpf,
+       gs_scarr TYPE scarr,
+       gs_bkpf  TYPE bkpf.
+
+<font color ="#0000FF">*-- Declaration of internal table and work area</font>
+DATA : BEGIN OF gs_flight,
+         carrid    TYPE scarr-carrid,
+         connid    TYPE spfli-connid,
+         countryfr TYPE spfli-countryfr,
+         cityfrom  TYPE spfli-cityfrom,
+         countryto TYPE spfli-countryto,
+         cityto    TYPE spfli-cityto,
+         carrname  TYPE scarr-carrname,
+         char(3), "참조하지 않는 변수도 선언 가능
+       END OF gs_flight,
+       gt_flight LIKE TABLE OF gs_flight. "work area를 참조하는 internal table
+
+<font color ="#0000FF">*--실습, ztcl1board22와 ztcl1_tax_22를 참조해서 work area와 internal table만들기</font>
+DATA : BEGIN OF gs_boardtax,
+         seqno  TYPE ztcl1board22-seqno,
+         author TYPE ztcl1board22-author,
+         comp   TYPE ztcl1board22-comp,
+         bukrs  TYPE ztcl1_tax_22-bukrs,
+         gjahr  TYPE ztcl1_tax_22-gjahr,
+         mwskz  TYPE ztcl1_tax_22-mwskz,
+       END OF gs_boardtax,
+       gt_boardtax LIKE TABLE OF gs_boardtax.
+
+<font color ="#0000FF">*--실습, BKPF, BSEG를 참조해서  work area와 internal table 생성</font>
+<font color ="#0000FF">*--gsber의 text table을 찾아서 내역 필드도 추가.</font>
+
+DATA : BEGIN OF gs_bkpf_bseg,
+         bukrs TYPE bkpf-bukrs,
+         belnr TYPE bkpf-belnr,
+         gjahr TYPE bkpf-gjahr,
+         gsber TYPE bseg-gsber, "Business area
+         gtext TYPE tgsbt-gtext, "Business area description
+         mwskz TYPE bseg-mwskz,
+         dmbtr TYPE bseg-dmbtr,
+         pswsl TYPE bseg-pswsl,
+       END OF gs_bkpf_bseg,
+       gt_bkpf_bseg LIKE TABLE OF gs_bkpf_bseg.
+
+<font color ="#0000FF">*--실습, 항공사 테이블의 carrid부터 url까지 모든 필드를 추가하고</font>
+<font color ="#0000FF">*--val1이라는 이름의 p 타입의 5자리, dec 3 필드를 추가.</font>
+
+DATA : BEGIN OF gs_scarr2,
+         carrid   TYPE scarr-carrid,
+         carrname TYPE scarr-carrname,
+         currcode TYPE scarr-currcode,
+         url      TYPE scarr-url,
+         val1     TYPE p LENGTH 5 DECIMALS 3,
+       END OF gs_scarr2,
+       gt_scarr2 LIKE TABLE OF gs_scarr2.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">*-- 특정 테이블의 모든 필드를 포함하고 추가로 다른 필드를 가지는 internal table</font>
+<font color ="#0000FF">**********************************************************************</font>
+DATA : BEGIN OF gs_air3.
+         INCLUDE STRUCTURE scarr. "INCLUDE TYPE scarr.
+         include structure <a href ="zscl1_comp_22/dictionary-zscl1_comp_22.html">zscl1_comp_22</a>.
+DATA :   val1(5) TYPE p DECIMALS 3,
+         val2(3),
+       END OF gs_air3,
+       gt_air3 LIKE TABLE OF gs_air3.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">*table MAKT의 모든 필드를 포함하고</font>
+<font color ="#0000FF">*아래의 필드를 추가로 가지는 local data type의 structure를 선언(TYPES)</font>
+<font color ="#0000FF">*mara-matkl, mara-mtart, mseg-mblnr, mseg-bwart</font>
+<font color ="#0000FF">**********************************************************************</font>
+
+TYPES : BEGIN OF ts_makt.
+          INCLUDE STRUCTURE makt.
+TYPES :   matkl TYPE mara-matkl,
+          mtart TYPE mara-mtart,
+          mblnr TYPE mseg-mblnr,
+          bwart TYPE mseg-bwart,
+        END OF ts_makt.
+
+DATA : gt_mara TYPE TABLE OF ts_makt,
+       gs_mara TYPE ts_makt.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">*4.table bsis를 직접 참조하는 internal table, work area를 선언</font>
+<font color ="#0000FF">*5.table bsid를 직접 참조하는 internal table, work area를 선언</font>
+<font color ="#0000FF">*6.table bsik를 직접 참조하는 internal table, work area를 선언</font>
+<font color ="#0000FF">**********************************************************************</font>
+
+DATA : gt_bsis TYPE TABLE OF bsis,
+       gs_bsis TYPE bsis,
+       gt_bsid TYPE TABLE OF bsid,
+       gs_bsid TYPE bsid,
+       gt_bsik TYPE TABLE OF bsik,
+       gs_bsik TYPE bsik.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">*7.table cskt의 모든 필드를 포함하고 아래의 필드를 추가로 가지는 work area 선언</font>
+<font color ="#0000FF">*   csks-pkzkp, csks-kosar, csks-tzjcd</font>
+<font color ="#0000FF">*8. 위의 work area를 참조로 하는 internal table을 선언</font>
+<font color ="#0000FF">**********************************************************************</font>
+
+DATA : BEGIN OF gs_cskt.
+         INCLUDE STRUCTURE cskt.
+DATA:    pkzkp TYPE csks-pkzkp,
+         kosar TYPE csks-kosar,
+         txjcd TYPE csks-txjcd,
+       END OF gs_cskt,
+       gt_cskt LIKE TABLE OF gs_cskt.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">*9. 아래와 같은 필드를 가지는 work area, internal table 선언</font>
+<font color ="#0000FF">**********************************************************************</font>
+
+DATA : BEGIN OF gs_mast,
+         level(10),
+         stlan     TYPE mast-stlan,
+         stlal     TYPE mast-stlal,
+         matnr     TYPE mast-matnr,
+         maktx     TYPE makt-maktx,
+         mnglg     TYPE stpol-mnglg,
+         melns     TYPE stpol-meins,
+       END OF gs_mast,
+       gt_mast LIKE TABLE OF gs_mast.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">*10. 아래와 같은 필드를 가지는 work area, interanl table 선언</font>
+<font color ="#0000FF">**********************************************************************</font>
+
+DATA : BEGIN OF gs_t134,
+         mtart TYPE t134-mtart,
+         mtref TYPE t134-mtref,
+         mbref TYPE t134-mbref,
+         pstat TYPE t134-pstat,
+         vmtpo TYPE t134-vmtpo,
+         kzgrp TYPE t134-kzgrp,
+         kkref TYPE t134-kkref,
+         krftx TYPE t025l-krftx,
+       END OF gs_t134,
+       gt_t134 LIKE TABLE OF gs_t134.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">*table scarr를 include한 후 아래의 필드를 정의</font>
+<font color ="#0000FF">*sflight-connid, sflight-fldate, sflight-price, sflight-currency,</font>
+<font color ="#0000FF">*sflight-planetype</font>
+<font color ="#0000FF">*위 필드 정의가 끝나면  zscl1_comp_22를 추가로 include한다.</font>
+<font color ="#0000FF">**********************************************************************</font>
+
+DATA : BEGIN OF gs_scarr3.
+         INCLUDE STRUCTURE scarr.
+DATA :   connid    TYPE sflight-connid,
+         fldate    TYPE sflight-fldate,
+         price     TYPE sflight-price,
+         currency  TYPE sflight-currency,
+         planetype TYPE sflight-planetype.
+         include structure <a href ="zscl1_comp_22/dictionary-zscl1_comp_22.html">zscl1_comp_22</a>.
+
+DATA: END OF gs_scarr3,
+gt_scarr3 LIKE TABLE OF gs_scarr3.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

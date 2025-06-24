@@ -1,0 +1,139 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZCL1R22003</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZCL1R22003</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  [CL1] ITAB Data access</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Report ZCL1R22003</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+REPORT zcl1r22003.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* Internal table and Work area</font>
+<font color ="#0000FF">**********************************************************************</font>
+
+DATA : BEGIN OF gs_data,
+         carrid   TYPE scarr-carrid, "항공사 코드
+         connid   TYPE spfli-connid, "연결항공편 번호
+         fldate   TYPE sflight-fldate, "운항일자
+         carrname TYPE scarr-carrname, "항공사명
+         cityfrom TYPE spfli-cityfrom, "출발도시
+         cityto   TYPE spfli-cityto, "도착도시
+         size     TYPE i, "lENGTH
+       END OF gs_data,
+       gt_data LIKE TABLE OF gs_data.
+
+
+DATA : gt_data2 LIKE TABLE OF gs_data.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* Data access</font>
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">*--1. Work area에 Data를 할당한다. (CARRID &lt;- 'LH', CONNID &lt;- 0400</font>
+
+CLEAR : gt_data, gs_data. "사용하기 전 쓰레기값 없애기
+gs_data-carrid = 'LH'.
+gs_data-connid = '0400'. "타입을 확인해서 numc타입이니까 문자형 ''
+gs_data-fldate = sy-datum. "system date
+gs_data-carrname = 'Luft Hanza'.
+gs_data-cityfrom = 'Seoul'.
+gs_data-cityto = 'Busan'.
+
+APPEND gs_data TO gt_data.
+
+CLEAR : gs_data. "internal table도 clear하면 앞에서 한 작업이 다 없어지기 때문에 하면 안 됨
+gs_data-carrid = 'AA'.
+gs_data-connid = '0100'.
+gs_data-fldate = '20250105'. "날짜, 시간은 구분자 없이 숫자로 입력해야 함
+gs_data-carrname = 'American airline'.
+
+INSERT gs_data INTO TABLE gt_data.
+
+
+CLEAR : gs_data.
+gs_data-carrid = 'CA'.
+gs_data-connid = '0700'.
+gs_data-fldate = '20250105'.
+gs_data-carrname = 'Canada airline'.
+
+
+INSERT gs_data INTO gt_data INDEX 1. "내가 원하는 위치에 삽입
+
+<font color ="#0000FF">*-- CASE 1: WITH KEY</font>
+CLEAR gs_data.
+READ TABLE gt_data INTO gs_data WITH KEY carrid = 'AA' connid = '0200'.
+
+<font color ="#0000FF">*-- CASE 2: INDEX</font>
+CLEAR gs_data.
+READ TABLE gt_data INTO gs_data INDEX 2. "LH
+
+CLEAR : gs_data.
+gs_data-carrid = 'CA'.
+gs_data-connid = '0700'.
+gs_data-fldate = '20250105'.
+gs_data-carrname = 'Canada airline'.
+gs_data-size = 17. " &lt;- Update data
+
+MODIFY gt_data FROM gs_data INDEX 1 TRANSPORTING size.
+
+<font color ="#0000FF">*delete gt_data. "테이블 전체 삭제</font>
+<font color ="#0000FF">*delete gt_data WHERE carrid eq 'AA'. "AA인 것 전부 삭제</font>
+<font color ="#0000FF">*DELETE gt_data WHERE carrid EQ 'AA' AND connid EQ '0100'. "하나의 레코드만 삭제</font>
+
+
+<font color ="#0000FF">*cl_demo_output=&gt;display( gs_data ).</font>
+
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* internal table 에서 loop</font>
+<font color ="#0000FF">**********************************************************************</font>
+
+<font color ="#0000FF">*LOOP AT gt_data INTO gs_data.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*  WRITE /: gs_data-carrid, gs_data-connid, gs_data-carrname. "읽어올 필드</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*ENDLOOP.</font>
+
+LOOP AT gt_data INTO gs_data. "loop를 돌면서 modify 수행.
+<font color ="#0000FF">*스캔을 돌면서 size를 찾아서 그 필드의 값을 변경해줌.</font>
+
+<font color ="#0000FF">*--Assign value   //size값을 수정함</font>
+  gs_data-size = gs_data-size + 1.
+
+<font color ="#0000FF">*--Apply to ITAB   //수정된 size값을 반영</font>
+  MODIFY gt_data FROM gs_data INDEX sy-tabix TRANSPORTING size.
+  WRITE /: gs_data-carrid, gs_data-connid, gs_data-carrname. "읽어올 필드
+
+ENDLOOP.
+
+WRITE sy-uline. " underline
+
+LOOP AT gt_data INTO gs_data WHERE carrid EQ 'CA'.
+  WRITE /: gs_data-carrid, gs_data-connid, gs_data-carrname.
+ENDLOOP.
+
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">*INSERT LINES, APPEND LINES</font>
+<font color ="#0000FF">**********************************************************************</font>
+
+<font color ="#0000FF">*-- process set data : gt_data -&gt; gt_data2</font>
+
+INSERT LINES OF gt_data FROM 2 TO 3 INTO TABLE gt_data2. "gt_data의 (2~3번)내용을 gt_data2에 추가한다.
+INSERT LINES OF gt_data FROM 2 TO 3 INTO gt_data2 INDEX 2.
+APPEND LINES OF gt_data FROM 2 TO 3 TO gt_data2.
+BREAK-POINT.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

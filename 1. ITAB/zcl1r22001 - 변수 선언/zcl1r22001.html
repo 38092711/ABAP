@@ -1,0 +1,160 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZCL1R22001</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZCL1R22001</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  [C1] Declaration of variable</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Report ZCL1R22001</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+REPORT zcl1r22001.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* local type - ABAP Dictionary ( Data element )</font>
+<font color ="#0000FF">*--------------------------------------------------------------------*</font>
+<font color ="#0000FF">* Declaration command : TYPES</font>
+<font color ="#0000FF">**********************************************************************</font>
+TYPES : tv_char3 TYPE c LENGTH 3,
+        tv_dec3  TYPE p LENGTH 5 DECIMALS 3,
+        tv_int4  TYPE i,
+        tv_date  TYPE d.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">*Declaration of variable</font>
+<font color ="#0000FF">*--------------------------------------------------------------------*</font>
+<font color ="#0000FF">*Using ABAP Incomplete type</font>
+<font color ="#0000FF">**********************************************************************</font>
+DATA : gv_char3    TYPE tv_char3,    " Reference to local data type
+       gv_char2    TYPE c LENGTH 2,
+       gv_var1(2)  TYPE c,           "약식으로 변수명 옆에 ()안에 length를 넣을 수 있음
+       gv_var2     TYPE c,           "length도 없고 ()도 없으면 기본 1자리를 차지함
+       gv_var3,                       "type도 지정하지 않으면 기본 char 유형
+       gv_var5(10),                   "char 10자리, 실무에서 많이 쓰는 방식
+       gv_carrid   TYPE s_carr_id,   "reference to global type
+       gv_bukrs    TYPE bukrs.
+
+DATA : gv_pvar1    TYPE p LENGTH 5 DECIMALS 2,
+       gv_pvar2(5) TYPE p DECIMALS 2, "줄여쓰기"
+       gv_num1     TYPE n LENGTH 5,
+       gv_num2     TYPE n,
+       gv_num3     LIKE gv_num1. "data 구문으로 선언된 변수를 참조하여 선언
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* using complete type</font>
+<font color ="#0000FF">**********************************************************************</font>
+
+DATA : gv_date1 TYPE d,         "길이 지정이 불가하기 때문에 length를 사용하면 오류 발생
+       gv_date2 TYPE tv_date,   "reference to local type
+       gv_budat TYPE budat,     "reference to local type
+       gv_date3 LIKE gv_date1,  "data 구문으로 선언된 변수를 참조하여 선언
+       gv_time  TYPE t,
+       gv_int4  TYPE i,
+       gv_float TYPE f,
+       gv_str   TYPE string.    "dynamic character string
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* reference to ABAP Dictionary - Global type ( Table or Structure field)</font>
+<font color ="#0000FF">**********************************************************************</font>
+
+DATA : gv_carrid2   TYPE spfli-carrid, " DATA  gv_carrid    TYPE s_carr_id, 위와 동일한 의미
+       gv_countryfr TYPE spfli-countryfr,
+       gv_cityfrom  TYPE spfli-cityfrom.
+
+DATA : gv_bukrs2 TYPE bkpf-bukrs, "company code
+       gv_belnr  TYPE bkpf-belnr, "document number
+       gv_gjahr  TYPE bkpf-gjahr. "fiscal year
+
+DATA : gv_augbl TYPE bseg-augbl,
+       gv_koart TYPE bseg-koart,
+       gv_zumsk TYPE bseg-zumsk.
+
+DATA : gv_mandt TYPE sy-mandt,
+       gv_uname TYPE sy-uname,
+       gv_langu TYPE sy-langu,
+       gv_datum TYPE sy-datum,
+       gv_uzeit TYPE sy-uzeit,
+       gv_tcode TYPE sy-tcode,
+       gv_repid TYPE sy-repid,
+       gv_index TYPE sy-index,
+       gv_subrc TYPE sy-subrc,
+       gv_tabix TYPE sy-tabix,
+       gv_dbcnt TYPE sy-dbcnt,
+       gv_dynnr TYPE sy-dynnr.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* internal table and work area (structure)</font>
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">*-- internal table : reference to transparent table</font>
+DATA : gt_spfli   TYPE TABLE OF spfli,
+       gt_scarr   TYPE TABLE OF scarr,
+       gt_sbook   TYPE TABLE OF sbook,
+       gt_sflight TYPE TABLE OF sflight.
+
+<font color ="#0000FF">*-- work area : reference to transparent table</font>
+DATA :gs_scarr   TYPE scarr,
+      gs_spfli   TYPE spfli,
+      gs_sbook   TYPE sbook,
+      gs_sflight TYPE sflight.
+
+<font color ="#0000FF">*-- internal table : reference to structure</font>
+DATA : gt_comp TYPE TABLE OF zscl1_comp_22.
+
+<font color ="#0000FF">*-- work area : reference to structure</font>
+DATA : gs_comp TYPE zscl1_comp_22.
+
+<font color ="#0000FF">*-- internal table : reference to table type</font>
+<font color ="#0000FF">*DATA : gt_info TYPE zlvc_t_info22.</font>
+
+<font color ="#0000FF">*-- work area : reference to line type in table type</font>
+<font color ="#0000FF">*DATA : gs_info TYPE zscl1_comp_22.</font>
+
+DATA : gt_board TYPE TABLE OF ztcl1board22,
+       gs_board TYPE ztcl1board22.
+
+DATA : gt_tax TYPE TABLE OF ztcl1_tax_22,
+       gs_tax TYPE ztcl1_tax_22.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* Calculation</font>
+<font color ="#0000FF">**********************************************************************</font>
+
+DATA : gv_string TYPE string VALUE 'SYNC6',
+       gv_len TYPE i,
+       gv_result  TYPE i,
+       gv_number1 TYPE i,
+       gv_number2 TYPE i.
+
+<font color ="#0000FF">*-- assign data</font>
+gv_number1 = 7.
+gv_number2 = 5.
+
+clear gv_result.
+
+gv_result = gv_number1 + gv_number2. "adding
+gv_result = gv_number1 - gv_number2. "subtraction
+gv_result = gv_number1 * gv_number2. "Multiply
+gv_result = gv_number2 / gv_number1. "Divide
+
+gv_result = gv_result + 1. " summary
+gv_result = 2 ** 3.
+gv_result = ( gv_number1 + gv_number2 ) ** 2.
+
+gv_result = gv_number2 div gv_number1.
+gv_result = gv_number2 mod gv_number1.
+
+gv_len = strlen( gv_string ).
+
+WRITE gv_len.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>
