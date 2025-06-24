@@ -1,0 +1,99 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZCL1R22011</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZCL1R22011</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  [C1} basic abap statement</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Report ZCL1R22011</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+REPORT zcl1r22011.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* internal table and work area</font>
+<font color ="#0000FF">**********************************************************************</font>
+
+DATA: gt_spfli TYPE TABLE OF spfli,
+      gs_spfli TYPE spfli.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* common variable</font>
+<font color ="#0000FF">**********************************************************************</font>
+
+
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* main logic</font>
+<font color ="#0000FF">**********************************************************************</font>
+CLEAR: gt_spfli, gs_spfli.
+SELECT carrid connid cityfrom cityto countryfr countryto
+  airpfrom airpto
+  INTO CORRESPONDING FIELDS OF TABLE gt_spfli
+  FROM spfli.
+
+<font color ="#0000FF">*-- if statement</font>
+IF sy-subrc EQ 0.
+  WRITE 'subrc eq 0 : success'.
+ENDIF.
+
+IF gt_spfli IS NOT INITIAL.
+  WRITE / 'itab is not empty'.
+ENDIF.
+
+<font color ="#0000FF">*--LOOP AT &lt;itab&gt; into &lt;workarea&gt;.</font>
+LOOP AT gt_spfli INTO gs_spfli WHERE carrid EQ 'AA'.
+  "where절에는 wa 없이 internal table에 있는 필드만 적어도 됨.
+
+  IF gs_spfli-countryfr EQ 'US'.
+    WRITE :/ gs_spfli-countryfr.
+  ELSE.
+    WRITE:/ 'not us'.
+  ENDIF.
+
+  IF ( gs_spfli-carrid EQ 'AA') OR ( gs_spfli-carrid EQ 'DL' ).
+    WRITE : / gs_spfli-carrid, sy-tabix.
+  ENDIF.
+
+  IF gs_spfli-connid BETWEEN '0017' AND '0100'.
+    WRITE :/ gs_spfli-carrid, gs_spfli-connid.
+  ENDIF.
+
+  IF strlen( gs_spfli-cityfrom ) GE 9.
+    WRITE :/ gs_spfli-cityfrom.
+  ENDIF.
+
+ENDLOOP.
+
+<font color ="#0000FF">*--case statement</font>
+LOOP AT gt_spfli INTO gs_spfli.
+
+  CASE gs_spfli-countryfr.
+    WHEN 'US'.
+      WRITE:/ gs_spfli-countryfr.
+    WHEN OTHERS.
+      WRITE:/ 'not us'.
+  ENDCASE.
+
+  CASE gs_spfli-carrid.
+    WHEN 'AA'.
+      WRITE : / gs_spfli-carrid, sy-tabix.
+    WHEN 'DL'.
+      WRITE : / gs_spfli-carrid, sy-tabix.
+    WHEN OTHERS.
+      WRITE:/ 'not AA'.
+  ENDCASE.
+
+ENDLOOP.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>
