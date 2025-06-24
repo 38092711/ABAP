@@ -1,0 +1,134 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZCL1R22061</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZCL1R22061</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  [CL1] Field symbol</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Report ZCL1R22061</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+REPORT zcl1r22061 MESSAGE-ID zc1msg22.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* internal table and work area</font>
+<font color ="#0000FF">**********************************************************************</font>
+DATA: gs_data TYPE zfaglflext.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* common variable</font>
+<font color ="#0000FF">**********************************************************************</font>
+FIELD-SYMBOLS &lt;gv_fs&gt; TYPE any.
+
+DATA: gv_result     TYPE zfaglflext-hsl01,
+      gv_var(30), "변수명
+      gv_month(2)   TYPE n, "월을 증가시키는 변수, 앞에 0이 자동으로 붙도록 n type
+      gv_amount(20), "금액을 담는 캐릭터 변수
+      gv_count.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* selection screen</font>
+<font color ="#0000FF">**********************************************************************</font>
+PARAMETERS: pa_gjahr TYPE bkpf-gjahr,
+            pa_monat TYPE bkpf-monat.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* start of selection</font>
+<font color ="#0000FF">**********************************************************************</font>
+START-OF-SELECTION.
+
+<font color ="#0000FF">*--get balnace data</font>
+  CLEAR gs_data.
+  SELECT SINGLE hsl01 hsl02 hsl03 hsl04 hsl05 hsl06
+                hsl07 hsl08 hsl09 hsl10 hsl11 hsl12 hwaer
+    INTO CORRESPONDING FIELDS OF gs_data
+    FROM zfaglflext
+    WHERE ryear EQ pa_gjahr.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">*--summary : 입력된 월만큼 반복</font>
+<font color ="#0000FF">* gv_result = gs_data-hsl01 + gs_data-hsl02 + ... gs_data-hslxx</font>
+<font color ="#0000FF">**********************************************************************</font>
+
+<font color ="#0000FF">*--full name</font>
+  DO pa_monat TIMES.
+
+    gv_month += 1.
+
+<font color ="#0000FF">*--변수명 구성</font>
+    CLEAR gv_var.
+    gv_var = 'GS_DATA-HSL' && gv_month.
+    ASSIGN (gv_var) TO &lt;gv_fs&gt;.
+
+<font color ="#0000FF">*--집계</font>
+<font color ="#0000FF">* 12보다 큰 수가 들어오면 로직 수행되지 않도록 assign이 되었을 때만 수행함</font>
+    IF &lt;gv_fs&gt; IS ASSIGNED.
+      gv_result += &lt;gv_fs&gt;.
+      UNASSIGN &lt;gv_fs&gt;. "한 번 사용한 다음엔 assign을 해제해야 함
+    ENDIF.
+
+  ENDDO.
+
+<font color ="#0000FF">*--WA의 component</font>
+  CLEAR: gv_month, gv_result.
+  DO pa_monat TIMES.
+
+    gv_month += 1.
+
+<font color ="#0000FF">*--변수명 구성: Assign component</font>
+    CLEAR gv_var.
+    gv_var = 'HSL' && gv_month.
+    ASSIGN COMPONENT gv_var OF STRUCTURE gs_data TO &lt;gv_fs&gt;.
+
+<font color ="#0000FF">*--집계</font>
+<font color ="#0000FF">* 12보다 큰 수가 들어오면 로직 수행되지 않도록 assign이 되었을 때만 수행함</font>
+IF &lt;gv_fs&gt; IS ASSIGNED.
+    gv_result += &lt;gv_fs&gt;.
+    UNASSIGN &lt;gv_fs&gt;. "한 번 사용한 다음엔 assign을 해제해야 함
+  ENDIF.
+
+ENDDO.
+
+<font color ="#0000FF">**--Position number</font>
+<font color ="#0000FF">*  CLEAR: gv_month, gv_result.</font>
+<font color ="#0000FF">*  gv_count = pa_monat + 3.</font>
+<font color ="#0000FF">*  DO gv_count TIMES.</font>
+<font color ="#0000FF">*    gv_month += 1.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">**--Position number</font>
+<font color ="#0000FF">*    ASSIGN COMPONENT sy-index OF STRUCTURE gs_data TO &lt;gv_fs&gt;.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*    IF &lt;gv_fs&gt; IS ASSIGNED.</font>
+<font color ="#0000FF">*      gv_result += &lt;gv_fs&gt;.</font>
+<font color ="#0000FF">*    ENDIF.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*    IF sy-index GT pa_monat.</font>
+<font color ="#0000FF">*      EXIT.</font>
+<font color ="#0000FF">*    ENDIF.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*  ENDDO.</font>
+
+
+WRITE gv_result CURRENCY gs_data-hwaer.
+"원화로 금액 출력
+WRITE gv_result CURRENCY gs_data-hwaer TO gv_amount.
+WRITE gv_amount.
+"통화키에 맞게 변환하고 변수에 담아서 출력하는 방법
+
+
+<font color ="#0000FF">*Selection texts</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* PA_GJAHR D       .</font>
+<font color ="#0000FF">* PA_MONAT D       .</font>
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>
