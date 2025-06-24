@@ -1,0 +1,98 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZCL1R22056</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZCL1R22056</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Program ZCL1R22056</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Report ZCL1R22056</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+REPORT zcl1r22056 MESSAGE-ID k5.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* internal table and work area</font>
+<font color ="#0000FF">**********************************************************************</font>
+DATA: BEGIN OF gs_spfli,
+        carrid    TYPE spfli-carrid,
+        connid    TYPE spfli-connid,
+        countryfr TYPE spfli-countryfr,
+        airpfrom  TYPE spfli-airpfrom,
+        cityfrom  TYPE spfli-cityfrom,
+        countryto TYPE spfli-countryto,
+        airpto    TYPE spfli-airpto,
+        cityto    TYPE spfli-cityto,
+      END OF gs_spfli,
+      gt_spfli LIKE TABLE OF gs_spfli.
+
+DATA: BEGIN OF gs_flight,
+        carrid     TYPE sflight-carrid,
+        connid     TYPE sflight-connid,
+        fldate     TYPE sflight-fldate,
+        seatsocc   TYPE sflight-seatsocc,
+        seatsmax   TYPE sflight-seatsmax,
+        currency   TYPE sflight-currency,
+        paymentsum TYPE sflight-paymentsum,
+      END OF gs_flight,
+      gt_flight LIKE TABLE OF gs_flight.
+
+DATA: gt_sbook TYPE TABLE OF sbook.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* selection screen</font>
+<font color ="#0000FF">**********************************************************************</font>
+SELECTION-SCREEN BEGIN OF BLOCK pa1 WITH FRAME TITLE TEXT-t01.
+  PARAMETERS: pa_carr TYPE spfli-carrid OBLIGATORY,
+              pa_conn TYPE sflight-connid.
+SELECTION-SCREEN END OF BLOCK pa1.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* start of selection</font>
+<font color ="#0000FF">**********************************************************************</font>
+START-OF-SELECTION.
+
+<font color ="#0000FF">*--Call procedure</font>
+  CALL METHOD zcl_amdp22_01=&gt;get_schedule
+    EXPORTING
+      iv_carrid   = pa_carr
+    IMPORTING
+      et_schedule = gt_spfli.
+
+<font color ="#0000FF">*--call flight data</font>
+  CALL METHOD zcl_amdp22_01=&gt;get_flight
+    EXPORTING
+      iv_carrid = pa_carr
+      iv_connid = pa_conn
+    IMPORTING
+      et_flight = gt_flight.
+
+<font color ="#0000FF">*--call sbook data</font>
+  CALL METHOD zcl_amdp22_01=&gt;get_book
+    EXPORTING
+      iv_name  = 'KING'
+    IMPORTING
+      et_sbook = gt_sbook.
+
+  cl_demo_output=&gt;display( gt_sbook ).
+
+<font color ="#0000FF">*Text elements</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* T01 Condition</font>
+
+
+<font color ="#0000FF">*Selection texts</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* PA_CARR D       .</font>
+<font color ="#0000FF">* PA_CONN D       .</font>
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>
