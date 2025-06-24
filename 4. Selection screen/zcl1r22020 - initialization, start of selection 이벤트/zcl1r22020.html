@@ -1,0 +1,153 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZCL1R22020</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZCL1R22020</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  [CL1] selection screen event</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Report ZCL1R22020</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+REPORT zcl1r22020 MESSAGE-ID zc1msg22.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* tables</font>
+<font color ="#0000FF">**********************************************************************</font>
+
+TABLES: stravelag, sbuspart.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* internal table and work area</font>
+<font color ="#0000FF">**********************************************************************</font>
+
+DATA: BEGIN OF gs_data,
+        agencynum TYPE stravelag-agencynum,
+        name      TYPE stravelag-name,
+        street    TYPE stravelag-street,
+        postcode  TYPE stravelag-postcode,
+        contact   TYPE sbuspart-contact,
+        contphono TYPE sbuspart-contphono,
+        buspatyp  TYPE sbuspart-buspatyp,
+      END OF gs_data,
+      gt_data LIKE TABLE OF gs_data.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* common variable</font>
+<font color ="#0000FF">**********************************************************************</font>
+
+DATA gv_tabix TYPE sy-tabix.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* selection screen</font>
+<font color ="#0000FF">**********************************************************************</font>
+
+SELECTION-SCREEN BEGIN OF BLOCK pa1 WITH FRAME TITLE TEXT-t01.
+  SELECT-OPTIONS so_agen FOR stravelag-agencynum.
+SELECTION-SCREEN END OF BLOCK pa1.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* initiallization</font>
+<font color ="#0000FF">**********************************************************************</font>
+INITIALIZATION.
+
+<font color ="#0000FF">*--set default value so_sgen</font>
+  "기본 1,5,7,100과 1500사이.
+
+  CLEAR: so_agen, so_agen[].
+  so_agen-sign = 'I'.
+  so_agen-option = 'EQ'.
+  so_agen-low = '1'.
+  APPEND so_agen.
+
+  CLEAR: so_agen.
+  so_agen-sign = 'I'.
+  so_agen-option = 'EQ'.
+  so_agen-low = '5'.
+  APPEND so_agen.
+
+  CLEAR: so_agen.
+  so_agen-sign = 'I'.
+  so_agen-option = 'EQ'.
+  so_agen-low = '7'.
+  APPEND so_agen.
+
+  CLEAR: so_agen.
+  so_agen-sign = 'I'.
+  so_agen-option = 'BT'.
+  so_agen-low = '100'.
+  so_agen-high = '1500'.
+  APPEND so_agen.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* start of selection</font>
+<font color ="#0000FF">**********************************************************************</font>
+
+START-OF-SELECTION.
+
+<font color ="#0000FF">*--get main table data</font>
+  "명시된 필드 중 buspatyp는 빼고 select함
+  CLEAR: gs_data, gt_data.
+  SELECT agencynum name street postcode contact contphono
+    INTO CORRESPONDING FIELDS OF TABLE gt_data
+    FROM stravelag AS a INNER JOIN sbuspart AS b
+    ON a~agencynum EQ b~buspartnum
+    WHERE agencynum IN so_agen.
+
+
+<font color ="#0000FF">*--message</font>
+  IF gt_data IS INITIAL.
+    MESSAGE s001 DISPLAY LIKE 'E'.
+    STOP.
+  ELSE.
+    MESSAGE s000 WITH sy-dbcnt.
+  ENDIF.
+
+
+<font color ="#0000FF">*--set buspatyp</font>
+  "itab 레코드에서 contphono의 값이 있으면 buspatyp 필드값을 'FC'
+  "contphono 값이 없으면 buspatyp 필드값을 'TA'로 변경
+  LOOP AT gt_data INTO gs_data.
+
+    gv_tabix = sy-tabix.
+
+    IF gs_data-contphono IS NOT INITIAL.
+      gs_data-buspatyp = 'FC'.
+    ELSE.
+      gs_data-buspatyp = 'TA'.
+    ENDIF.
+
+    MODIFY gt_data FROM gs_data INDEX gv_tabix
+                                TRANSPORTING buspatyp.
+  ENDLOOP.
+
+
+  cl_demo_output=&gt;display( gt_data ).
+
+<font color ="#0000FF">*Text elements</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* T01 condition</font>
+
+
+<font color ="#0000FF">*Selection texts</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* SO_AGEN D       .</font>
+
+
+<font color ="#0000FF">*Messages</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">* Message class: ZC1MSG22</font>
+<font color ="#0000FF">*000   & 건이 조회되었습니다</font>
+<font color ="#0000FF">*001   조회된 데이터가 없습니다</font>
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

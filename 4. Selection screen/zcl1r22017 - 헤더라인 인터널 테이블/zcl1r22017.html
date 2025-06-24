@@ -1,0 +1,150 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZCL1R22017</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZCL1R22017</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  [CL1] headerline internal table</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Report ZCL1R22017</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+REPORT zcl1r22017 MESSAGE-ID zclmsg22.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">*tables</font>
+<font color ="#0000FF">**********************************************************************</font>
+TABLES: scarr.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">*internal table and work area</font>
+<font color ="#0000FF">**********************************************************************</font>
+
+DATA: gt_bkpf TYPE TABLE OF bkpf,
+      gs_bkpf TYPE bkpf.
+
+DATA: BEGIN OF gs_data1,
+        carrid TYPE scarr-carrid,
+        connid TYPE spfli-connid,
+        fldate TYPE sflight-fldate,
+        url    TYPE scarr-url,
+      END OF gs_data1,
+      gt_data1 LIKE TABLE OF gs_data1.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* headerline internal table</font>
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">*--headerline을 가지고 있는 internal table.</font>
+
+DATA: gt_scarr TYPE TABLE OF scarr WITH HEADER LINE,
+      gt_spfli TYPE TABLE OF spfli WITH HEADER LINE.
+
+DATA: gt_sflight TYPE sflight OCCURS 0 WITH HEADER LINE .
+
+
+<font color ="#0000FF">*--여러 필드를 선택해서 가지는 internal table.</font>
+DATA: BEGIN OF gt_flight OCCURS 0,
+        carrid TYPE scarr-carrid,
+        connid TYPE spfli-connid,
+        fldate TYPE sflight-fldate,
+        url    TYPE scarr-url,
+      END OF gt_flight.
+
+"occurs 100 사이즈 카테고리를 갖게 함.
+"사이즈는 해당 테이블의 버퍼를 자동으로 늘려주는 역할.
+"0으로 주면 사이즈 카테고리가 유연하게 움직임.
+
+"헤더라인을 자제하는 게 좋음.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">*selection screen</font>
+<font color ="#0000FF">**********************************************************************</font>
+SELECT-OPTIONS so_carr FOR scarr-carrid.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">*initialization</font>
+<font color ="#0000FF">**********************************************************************</font>
+INITIALIZATION.  "이벤트를 설치함.
+
+<font color ="#0000FF">*--1. so_carr에 'AA' ~ 'LH' 값을 세팅한다.</font>
+<font color ="#0000FF">*--1.1 so_carr에 'BA' 값을 추가로 세팅한다. 연산자는 EQ.</font>
+
+  CLEAR: so_carr.
+  so_carr-sign = 'I'.
+  so_carr-option = 'BT'.
+  so_carr-low = 'AA'.
+  so_carr-high = 'LH'.
+  APPEND so_carr.
+
+  CLEAR: so_carr.
+  so_carr-sign = 'I'.
+  so_carr-option = 'EQ'.
+  so_carr-low = 'BA'.
+  APPEND so_carr.
+
+<font color ="#0000FF">*cl_demo_output=&gt;display( so_carr[] ).</font>
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* AT SELECTION-SCREEN.</font>
+<font color ="#0000FF">**********************************************************************</font>
+AT SELECTION-SCREEN.
+<font color ="#0000FF">*--만일 low에 'BA'라는 값이 so_carr에 존재하면 실행불가.</font>
+
+  LOOP AT so_carr.
+    IF so_carr-low = 'BA'.
+      STOP.
+    ENDIF.
+  ENDLOOP.
+
+
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">*start of main routine</font>
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">*--1. gt_scarr에 carrid = 'AA' carrname = 'American airline</font>
+<font color ="#0000FF">*               currcode = 'USD' url = 'http://www.aa.com을 append</font>
+<font color ="#0000FF">*--2. gt_spfli에 carrid = 'LH' connid = '0400' cityfrom = 'new york'</font>
+<font color ="#0000FF">*               cityto = 'seoul' 을 append</font>
+<font color ="#0000FF">*--3. gt_flight에 carrid = 'RA' connid = '0050' fldate = system date</font>
+<font color ="#0000FF">*                url = 'http://www.britishairway.com을 append</font>
+<font color ="#0000FF">*--4. gt_scarr에서 carrid = 'AA' AND currcode = 'USD'인 데이터를 읽는다</font>
+<font color ="#0000FF">*--5. gt_flight의 1번째 행을 읽는다.</font>
+
+  REFRESH gt_scarr.
+  CLEAR: gt_scarr.
+  gt_scarr-carrid = 'AA'.
+  gt_scarr-carrname = 'American airline'.
+  gt_scarr-currcode = 'USD'.
+  gt_scarr-url = 'http://www.aa.com'.
+  APPEND gt_scarr.
+
+  CLEAR: gt_spfli.
+  gt_spfli-carrid = 'LH'.
+  gt_spfli-connid = '0400'.
+  gt_spfli-cityfrom = 'new york'.
+  gt_spfli-cityto = 'SEOUL'.
+  APPEND gt_spfli.
+
+  CLEAR:gt_flight.
+  gt_flight-carrid = 'BA'.
+  gt_flight-connid = '0400'.
+  gt_flight-fldate = sy-datum.
+  gt_flight-url = 'http://www.brithshairway.com'.
+  APPEND gt_flight.
+
+  CLEAR: gt_scarr.
+  READ TABLE gt_scarr WITH KEY carrid = 'AA' currcode = 'USD'.
+
+  CLEAR: gt_flight.
+  READ TABLE gt_flight INDEX 1.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

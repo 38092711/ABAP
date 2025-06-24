@@ -1,0 +1,138 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZCL1R22021</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZCL1R22021</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  [CL1] modify screen</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Report ZCL1R22021</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+REPORT zcl1r22021 MESSAGE-ID zcl1msg22.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* tables</font>
+<font color ="#0000FF">**********************************************************************</font>
+TABLES: scarr, spfli,sflight, sbook.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* selection screen</font>
+<font color ="#0000FF">**********************************************************************</font>
+SELECTION-SCREEN BEGIN OF BLOCK pa1 WITH FRAME TITLE TEXT-t01.
+  PARAMETERS: pa_bukrs TYPE bkpf-bukrs.
+
+  SELECTION-SCREEN SKIP.
+
+  PARAMETERS: pa_carr TYPE scarr-carrid MODIF ID car,
+              pa_conn TYPE spfli-connid MODIF ID con,
+              pa_fldt TYPE sflight-fldate MODIF ID fld,
+              pa_id   TYPE sbook-bookid MODIF ID bid.
+  "modif id는 raddio button group처럼 동일한 이름끼리 묶임
+
+  SELECTION-SCREEN SKIP.
+
+  SELECT-OPTIONS : so_from FOR spfli-cityfrom MODIF ID cit,
+                   so_to   FOR spfli-cityto   MODIF ID cit,
+                   so_type FOR sbook-custtype MODIF ID cus,
+                   so_smoke FOR sbook-smoker MODIF ID cus.
+
+SELECTION-SCREEN END OF BLOCK pa1.
+
+SELECTION-SCREEN BEGIN OF BLOCK pa2 WITH FRAME TITLE TEXT-t02.
+  PARAMETERS: pa_scarr RADIOBUTTON GROUP rb1 USER-COMMAND evt,
+              pa_spfli RADIOBUTTON GROUP rb1,
+              pa_fligh RADIOBUTTON GROUP rb1,
+              pa_sbook RADIOBUTTON GROUP rb1.
+  "같은 그룹이기 때문에 user-command는 하나만 줘도 됨.
+  "라디오 버튼을 선택하면 바로 이벤트가 반영될 수 있도록 함.
+
+  SELECTION-SCREEN ULINE.
+
+  PARAMETERS: pa_city AS CHECKBOX,
+              pa_cust AS CHECKBOX.
+SELECTION-SCREEN END OF BLOCK pa2.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* initailization</font>
+<font color ="#0000FF">**********************************************************************</font>
+INITIALIZATION.
+  pa_bukrs = '1000'.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* at selection-screen output</font>
+<font color ="#0000FF">**********************************************************************</font>
+AT SELECTION-SCREEN OUTPUT.
+  LOOP AT SCREEN. "스크린 내부의 모든 속성을 풀 스캔함
+
+    CASE 'X'.
+      WHEN pa_scarr.
+        IF screen-group1 EQ 'CAR'.
+          screen-input = 0.
+        ELSE.
+          screen-input = 1.
+          "선택하지 않았을 떄 지동으로 풀리지 않을 수도 있어서 else 조건을 추가함.
+        ENDIF.
+      WHEN pa_spfli.
+        IF screen-group1 EQ 'CON'.
+          screen-input = 0.
+        ELSE.
+          screen-input = 1.
+        ENDIF.
+      WHEN pa_fligh.
+        IF screen-group1 EQ 'FLD'.
+          screen-input = 0.
+        ELSE.
+          screen-input = 1.
+        ENDIF.
+      WHEN pa_sbook.
+        IF screen-group1 EQ 'BID'.
+          screen-input = 0.
+        ELSE.
+          screen-input = 1.
+        ENDIF.
+    ENDCASE.
+
+    IF screen-name EQ 'PA_BUKRS'.
+      screen-input = 0. "On = 1, off = 0, 0일 때 읽기 전용으로 변경.
+    ENDIF.
+
+
+    MODIFY SCREEN.   "modify screen 해야 반영됨.
+
+  ENDLOOP.
+
+<font color ="#0000FF">*Text elements</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* T01 condition</font>
+<font color ="#0000FF">* T02 attribute</font>
+
+
+<font color ="#0000FF">*Selection texts</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* PA_BUKRS D       .</font>
+<font color ="#0000FF">* PA_CARR D       .</font>
+<font color ="#0000FF">* PA_CITY         city(from & to)</font>
+<font color ="#0000FF">* PA_CONN D       .</font>
+<font color ="#0000FF">* PA_CUST         Customer</font>
+<font color ="#0000FF">* PA_FLDT D       .</font>
+<font color ="#0000FF">* PA_FLIGH         sflight</font>
+<font color ="#0000FF">* PA_ID D       .</font>
+<font color ="#0000FF">* PA_SBOOK         Sbook</font>
+<font color ="#0000FF">* PA_SCARR         Scarr</font>
+<font color ="#0000FF">* PA_SPFLI         Spfli</font>
+<font color ="#0000FF">* SO_FROM D       .</font>
+<font color ="#0000FF">* SO_SMOKE D       .</font>
+<font color ="#0000FF">* SO_TO D       .</font>
+<font color ="#0000FF">* SO_TYPE D       .</font>
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

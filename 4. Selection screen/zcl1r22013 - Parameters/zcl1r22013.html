@@ -1,0 +1,133 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZCL1R22013</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZCL1R22013</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  [CL1] selection screen - parameters</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Report ZCL1R22013</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+REPORT zcl1r22013 MESSAGE-ID zcl1msg22.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* internal table and work area</font>
+<font color ="#0000FF">**********************************************************************</font>
+DATA: gt_scarr TYPE TABLE OF scarr,
+      gs_scarr TYPE scarr,
+      gv_name  TYPE scarr-carrname.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* selection screen</font>
+<font color ="#0000FF">**********************************************************************</font>
+
+
+SELECTION-SCREEN BEGIN OF BLOCK pa1 WITH FRAME TITLE TEXT-t01.
+  "프로그램 안에 text를 별도로 저장할 수가 있음. text symbol.
+  "text-t01 과 같이 불러올 수 있음.
+  PARAMETERS : pa_carr      TYPE scarr-carrid DEFAULT 'LH' OBLIGATORY,
+               "변수명이 8자리를 넘을 수 없음
+               pa_name      TYPE scarr-carrname,
+               pa_email(50) LOWER CASE,
+               pa_part type ztcl1part_22_03-part_code as LISTBOX visible LENGTH 10.
+SELECTION-SCREEN END OF BLOCK pa1.
+
+SELECTION-SCREEN BEGIN OF BLOCK pa2 WITH FRAME TITLE TEXT-t02.
+  PARAMETERS : pa_chk1 AS CHECKBOX,
+               pa_chk2 AS CHECKBOX DEFAULT 'X'.
+
+  "SELECTION-SCREEN SKIP. "한 줄 공백 명령어
+  SELECTION-SCREEN ULINE. "한 줄 그리기
+
+  PARAMETERS : pa_rb1 RADIOBUTTON GROUP rb1,
+               pa_rb2 RADIOBUTTON GROUP rb1 DEFAULT 'X',
+               pa_rb3 RADIOBUTTON GROUP rb1.
+
+
+  SELECTION-SCREEN SKIP.
+  SELECTION-SCREEN BEGIN OF BLOCK pa3 WITH FRAME TITLE TEXT-t03.
+    "디폴트값을 주지 않으면 제일 위에 있는 게 자동으로 선택됨.
+    PARAMETERS: pa_btn1 RADIOBUTTON GROUP rb2,
+                pa_btn2 RADIOBUTTON GROUP rb2.
+  SELECTION-SCREEN END OF BLOCK pa3.
+
+SELECTION-SCREEN END OF BLOCK pa2.
+
+
+
+SELECTION-SCREEN BEGIN OF BLOCK pa4 WITH FRAME TITLE TEXT-t04.
+  PARAMETERS: pa_year TYPE bkpf-gjahr DEFAULT sy-datum OBLIGATORY,
+              pa_post TYPE bkpf-monat DEFAULT '1' OBLIGATORY.
+SELECTION-SCREEN END OF BLOCK pa4.
+
+SELECTION-SCREEN SKIP.
+SELECTION-SCREEN BEGIN OF BLOCK pa5 WITH FRAME TITLE TEXT-t05.
+  PARAMETERS: pa_ck1 AS CHECKBOX,
+              pa_ck2 AS CHECKBOX,
+              pa_ck3 AS CHECKBOX,
+              pa_bt1 RADIOBUTTON GROUP rb3,
+              pa_bt2 RADIOBUTTON GROUP rb3,
+              pa_bt3 RADIOBUTTON GROUP rb3,
+              pa_bt4 RADIOBUTTON GROUP rb3,
+              pa_bt5 RADIOBUTTON GROUP rb3.
+
+SELECTION-SCREEN END OF BLOCK pa5.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* start of main routine</font>
+<font color ="#0000FF">**********************************************************************</font>
+CLEAR: gs_scarr, gv_name.
+gv_name = '%' && pa_name && '%'.
+
+SELECT carrid carrname currcode  url
+  INTO CORRESPONDING FIELDS OF TABLE gt_scarr
+  FROM scarr
+  WHERE carrid = pa_carr
+  AND carrname LIKE gv_name.
+
+
+cl_demo_output=&gt;display( gt_scarr ).
+
+<font color ="#0000FF">*Text elements</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* T01 condition</font>
+<font color ="#0000FF">* T02 multi choice</font>
+<font color ="#0000FF">* T03 sub choice</font>
+<font color ="#0000FF">* T04 Condition</font>
+<font color ="#0000FF">* T05 choice</font>
+
+
+<font color ="#0000FF">*Selection texts</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* PA_BT1         radio 1</font>
+<font color ="#0000FF">* PA_BT2         radio 2</font>
+<font color ="#0000FF">* PA_BT3         radio 3</font>
+<font color ="#0000FF">* PA_BT4         radio 4</font>
+<font color ="#0000FF">* PA_BT5         radio 5</font>
+<font color ="#0000FF">* PA_BTN1         radio 1</font>
+<font color ="#0000FF">* PA_BTN2         radio 2</font>
+<font color ="#0000FF">* PA_CARR         Airline code</font>
+<font color ="#0000FF">* PA_CHK1         checkbox 1</font>
+<font color ="#0000FF">* PA_CHK2         checkbox 2</font>
+<font color ="#0000FF">* PA_CK1         checkbox 1</font>
+<font color ="#0000FF">* PA_CK2         checkbox 2</font>
+<font color ="#0000FF">* PA_CK3         checkbox 3</font>
+<font color ="#0000FF">* PA_EMAIL         email</font>
+<font color ="#0000FF">* PA_NAME         airline name</font>
+<font color ="#0000FF">* PA_POST         Fiscal Year</font>
+<font color ="#0000FF">* PA_RB1         food 1</font>
+<font color ="#0000FF">* PA_RB2         food 2</font>
+<font color ="#0000FF">* PA_RB3         food 3</font>
+<font color ="#0000FF">* PA_YEAR         Posting period</font>
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

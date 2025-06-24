@@ -1,0 +1,121 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZCL1R22019</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZCL1R22019</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  [CL1] at selection screen</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Report ZCL1R22019</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+REPORT zcl1r22019 MESSAGE-ID zc1msg22.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* tables</font>
+<font color ="#0000FF">**********************************************************************</font>
+TABLES: scarr, spfli, sflight.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* internal table and work area</font>
+<font color ="#0000FF">**********************************************************************</font>
+DATA: BEGIN OF gs_flight,
+        carrid   TYPE scarr-carrid,
+        connid   TYPE spfli-connid,
+        fldate   TYPE sflight-fldate,
+        carrname TYPE scarr-carrname,
+        airpfrom TYPE spfli-airpfrom,
+        price    TYPE sflight-price,
+        currency TYPE sflight-currency,
+      END OF gs_flight,
+      gt_flight LIKE TABLE OF gs_flight.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* common variable</font>
+<font color ="#0000FF">**********************************************************************</font>
+DATA: gv_carrid TYPE scarr-carrid,
+      gv_connid TYPE spfli-connid,
+      gv_fldate TYPE sflight-fldate.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* selection screen</font>
+<font color ="#0000FF">**********************************************************************</font>
+SELECTION-SCREEN BEGIN OF BLOCK pa1 WITH FRAME TITLE TEXT-t01.
+  PARAMETERS: pa_carr TYPE scarr-carrid OBLIGATORY.
+  SELECT-OPTIONS: so_conn FOR spfli-connid,
+                  so_date FOR sflight-fldate.
+SELECTION-SCREEN END OF BLOCK pa1.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* initialization</font>
+<font color ="#0000FF">**********************************************************************</font>
+INITIALIZATION.
+
+<font color ="#0000FF">*--set default value pa_carr.</font>
+  CLEAR pa_carr.
+  pa_carr = 'AA'.
+
+<font color ="#0000FF">*--set default value so_conn.</font>
+  CLEAR: so_conn, so_conn[].
+  so_conn-sign = 'I'.
+  so_conn-option = 'EQ'.
+  so_conn-low = '0017'.
+  APPEND so_conn.
+
+  CLEAR: so_conn.
+  so_conn-sign = 'I'.
+  so_conn-option = 'EQ'.
+  so_conn-low = '0064'.
+  APPEND so_conn.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* START-OF-SELECTION.</font>
+<font color ="#0000FF">**********************************************************************</font>
+START-OF-SELECTION.
+
+  CLEAR: gs_flight, gt_flight.
+  SELECT a~carrid b~connid fldate carrname airpfrom price currency
+    INTO CORRESPONDING FIELDS OF TABLE gt_flight
+    FROM scarr AS a INNER JOIN spfli AS b
+    ON a~carrid EQ b~carrid
+    INNER JOIN sflight AS c
+    ON b~carrid EQ c~carrid
+    AND b~connid EQ c~connid
+    WHERE a~carrid EQ pa_carr
+    AND b~connid IN so_conn
+    AND fldate IN so_date.
+
+
+  LOOP AT gt_flight INTO gs_flight.
+    gs_flight-currency = 'KRW'.
+    MODIFY gt_flight FROM gs_flight INDEX sy-tabix
+                                    TRANSPORTING currency.
+  ENDLOOP.
+
+
+  cl_demo_output=&gt;display( gt_flight ).
+
+<font color ="#0000FF">*Text elements</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* E01 은/는 유효하지 않은 Airline code 입니다.</font>
+<font color ="#0000FF">* E02 은/는 유효하지 않은 Connection Number 입니다.</font>
+<font color ="#0000FF">* E03 은/는 유효하지 않은 Flight Date 입니다.</font>
+<font color ="#0000FF">* T01 condition</font>
+
+
+<font color ="#0000FF">*Selection texts</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* PA_CARR D       .</font>
+<font color ="#0000FF">* SO_CONN D       .</font>
+<font color ="#0000FF">* SO_DATE D       .</font>
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>
