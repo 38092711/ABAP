@@ -1,0 +1,79 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZCL1R26BDC</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZCL1R26BDC</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  [C1] Fi document BDC</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Report ZCL1R26BDC</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+
+include <a href ="zcl1r26bdctop.html">zcl1r26bdctop</a>.                            "    Global declaration
+
+include <a href ="zcl1r26bdcs01.html">zcl1r26bdcs01</a>.                            "  Selection screen
+include <a href ="zcl1r26bdcc01.html">zcl1r26bdcc01</a>.                            "  ALV Events
+include <a href ="zcl1r26bdco01.html">zcl1r26bdco01</a>.                            "  PBO Module
+include <a href ="zcl1r26bdci01.html">zcl1r26bdci01</a>.                            "  PAI Module
+include <a href ="zcl1r26bdcf01.html">zcl1r26bdcf01</a>.                            "  FORM Routines
+
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* INITIALIZATION</font>
+<font color ="#0000FF">**********************************************************************</font>
+INITIALIZATION.
+  PERFORM set_init_value.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* AT SELECTION-SCREEN</font>
+<font color ="#0000FF">**********************************************************************</font>
+AT SELECTION-SCREEN OUTPUT.
+  PERFORM modify_screen.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* START-OF-SELECTION</font>
+<font color ="#0000FF">**********************************************************************</font>
+START-OF-SELECTION.
+
+  CALL SCREEN 100.
+
+<font color ="#0000FF">*GUI Texts</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* TITLE100 --&gt; [FI] G/L Document posting</font>
+
+<font color ="#0000FF">*Text elements</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* E01 Top of page event error</font>
+<font color ="#0000FF">* E02 삭제할 행을 선택하세요.</font>
+<font color ="#0000FF">* E03 전기할 행을 선택하세요.</font>
+<font color ="#0000FF">* I01 ※ 차변계정은 211000 (발생비용)</font>
+<font color ="#0000FF">* I02 ※ 대변계정은 100000(소액현금)</font>
+<font color ="#0000FF">* T01 Condition</font>
+<font color ="#0000FF">* T02 Information</font>
+
+
+<font color ="#0000FF">*Selection texts</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* PA_BUDAT D       .</font>
+<font color ="#0000FF">* PA_BUKRS D       .</font>
+<font color ="#0000FF">* PA_MODE         BDC Mode</font>
+<font color ="#0000FF">* PA_WAERS D       .</font>
+
+
+<font color ="#0000FF">*Messages</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">* Message class: K5</font>
+<font color ="#0000FF">*001   & & & &</font>
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 758
+</font>
+</body>
+</html>
