@@ -1,0 +1,157 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZCL1R22015</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZCL1R22015</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  [CL1] open sql test review</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Report ZCL1R22015</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+REPORT zcl1r22015 MESSAGE-ID zc1msg22.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* 3번, open sql test review</font>
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">*bkpf와 hseg를 inner join</font>
+<font color ="#0000FF">*세금 코드는 개별 항목에 있으니 세금 코드의 텍스트 테이블을 찾아서 그 내용을 세팅해야 함</font>
+
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* internal table and work area</font>
+<font color ="#0000FF">**********************************************************************</font>
+
+DATA: gt_bkpf TYPE TABLE OF bkpf,
+      gt_bseg TYPE TABLE OF bseg,
+      gs_bkpf TYPE bkpf,
+      gs_bseg TYPE bseg.
+
+DATA: BEGIN OF gs_docu,
+        bukrs TYPE bkpf-bukrs,
+        belnr TYPE bkpf-belnr,
+        gjahr TYPE bkpf-gjahr,
+        buzei TYPE bseg-buzei,
+        bktxt TYPE bkpf-bktxt,
+        koart TYPE bseg-koart,
+        mwskz TYPE t007a-mwskz,
+        text1 TYPE t007s-text1,
+        sgtxt TYPE bseg-sgtxt,
+        shkzg TYPE bseg-shkzg,
+        dmbtr TYPE bseg-dmbtr,
+        waers TYPE bkpf-waers,
+      END OF gs_docu,
+      gt_docu LIKE TABLE OF gs_docu.
+
+DATA: gt_t007s  TYPE TABLE OF t007s,
+      gt_backup TYPE TABLE OF t007s,
+      gs_t007s  TYPE t007s,
+      gs_backup type t007s.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* common variable</font>
+<font color ="#0000FF">**********************************************************************</font>
+DATA: gv_tabix TYPE sy-tabix.
+"read table에서 어떤 걸 작업할 때는 꼭 변수를 선언해서
+"현재 처리하고 있는 index를 보관할 수 있도록 해야 함
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* selection screen</font>
+<font color ="#0000FF">**********************************************************************</font>
+
+SELECTION-SCREEN BEGIN OF BLOCK pa1 WITH FRAME TITLE TEXT-t01.
+  PARAMETERS: pa_bukrs TYPE bkpf-bukrs DEFAULT '0001',
+              pa_gjahr TYPE bkpf-gjahr DEFAULT sy-datum.
+SELECTION-SCREEN END OF BLOCK pa1.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* main routine</font>
+<font color ="#0000FF">**********************************************************************</font>
+
+CLEAR: gt_bkpf, gs_bkpf.
+SELECT a~bukrs a~belnr a~gjahr buzei bktxt koart mwskz
+sgtxt shkzg dmbtr waers
+INTO CORRESPONDING FIELDS OF TABLE gt_docu
+FROM bkpf AS a
+INNER JOIN bseg AS b
+ON a~bukrs EQ b~bukrs
+AND a~belnr EQ b~belnr
+AND a~gjahr EQ b~gjahr
+WHERE a~bukrs EQ pa_bukrs
+  AND a~gjahr EQ pa_gjahr.
+
+
+
+IF gt_docu IS INITIAL.
+  MESSAGE s001 DISPLAY LIKE 'E'.
+  STOP. "stop을 걸지 않으면 보조 데이터를 가져오게 됨.
+  "이후에 추가 작업을 할 필요가 없을 땐 stop으로 프로세스의 낭비를 막아야 함
+ELSE.
+  MESSAGE s000 WITH sy-dbcnt.
+ENDIF.
+
+
+<font color ="#0000FF">*보조 데이터를 가져와야 함 - 세금 코드 내역</font>
+<font color ="#0000FF">*--get tax desctioption</font>
+CLEAR gt_t007s.
+SELECT mwskz text1
+  INTO CORRESPONDING FIELDS OF TABLE gt_t007s
+  FROM t007s
+  WHERE kalsm EQ 'TAXKR'
+  AND spras EQ sy-langu. "text table은 반드시 언어키를 조건으로 줘야 함
+
+
+<font color ="#0000FF">*--binary search</font>
+<font color ="#0000FF">*--delete duplicated key</font>
+MOVE-CORRESPONDING gt_t007s TO gt_backup.
+SORT gt_backup BY mwskz ASCENDING.
+DELETE ADJACENT DUPLICATES FROM gt_backup COMPARING mwskz.
+
+<font color ="#0000FF">*--set tax description : read sub table after read main table</font>
+"메인 테이블에 세금 내역 필드를 세팅하기 위해서
+"메인 테이블을 돌면서 세금 코드 내역을 순차적으로 채움
+LOOP AT gt_docu INTO gs_docu.
+
+  gv_tabix = sy-tabix.
+  "현재 처리 중인 행의 위치를 백업
+
+<font color ="#0000FF">*--get tax description</font>
+  CLEAR gs_backup.
+  READ TABLE gt_backup INTO gs_backup WITH KEY mwskz = gs_docu-mwskz
+  BINARY SEARCH.
+  "내가 가지고 있는 세금 코드를 통해서 t007s를 읽음
+
+  IF sy-subrc EQ 0.
+    gs_docu-text1 = gs_backup-text1.
+  ENDIF.
+  "성공했으면 gs_docu-text1에 gs_t007s-text1을 반영함
+
+  MODIFY gt_docu FROM gs_docu INDEX gv_tabix TRANSPORTING text1.
+  "변경, sy-tabix를 index값으로 주면 read table의 sy-tabix값이 바뀔 수 있음
+  "따라서 어딘가에 보관해줘야 함
+  "loop돌 때 sy-index 절대 안 됨.
+
+
+ENDLOOP.
+"loop 안에서 sort하거나 변수, 데이터를 선언하는 것은 절대 금지된 코딩임
+
+cl_demo_output=&gt;display( gt_docu ).
+
+
+<font color ="#0000FF">*Messages</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">* Message class: ZC1MSG22</font>
+<font color ="#0000FF">*000   & 건이 조회되었습니다</font>
+<font color ="#0000FF">*001   조회된 데이터가 없습니다</font>
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

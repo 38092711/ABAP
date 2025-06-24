@@ -1,0 +1,195 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZCL1R22008</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZCL1R22008</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  [CL1] Open SQL - join</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Report ZCL1R22008</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+REPORT zcl1r22008.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* internal table and work area</font>
+<font color ="#0000FF">**********************************************************************</font>
+
+DATA: BEGIN OF gs_schedule,
+        carrid   TYPE scarr-carrid,
+        connid   TYPE spfli-connid,
+        cityfrom TYPE spfli-cityfrom,
+        cityto   TYPE spfli-cityto,
+        carrname TYPE scarr-carrname,
+      END OF gs_schedule,
+      gt_schedule LIKE TABLE OF gs_schedule.
+
+DATA: BEGIN OF gs_flight,
+        carrid   TYPE spfli-carrid,
+        connid   TYPE spfli-connid,
+        fldate   TYPE sflight-fldate,
+        airpfrom TYPE spfli-airpfrom,
+        airpto   TYPE spfli-airpto,
+        seatsmax TYPE sflight-seatsmax,
+        seatsocc TYPE sflight-seatsocc,
+      END OF gs_flight,
+      gt_flight LIKE TABLE OF gs_flight.
+
+DATA: BEGIN OF gs_airline,
+        carrid   TYPE scarr-carrid,
+        connid   TYPE spfli-connid,
+        cityfrom TYPE spfli-cityfrom,
+        cityto   TYPE spfli-cityto,
+        seatsmax TYPE sflight-seatsmax,
+        seatsocc TYPE sflight-seatsocc,
+        carrname TYPE scarr-carrname,
+      END OF gs_airline,
+      gt_airline LIKE TABLE OF gs_airline.
+
+DATA: BEGIN OF gs_booking,
+        carrid   TYPE spfli-carrid,
+        connid   TYPE spfli-connid,
+        fldate   TYPE sflight-fldate,
+        bookid   TYPE sbook-bookid,
+        cityfrom TYPE spfli-cityfrom,
+        cityto   TYPE spfli-cityto,
+        seatsmax TYPE sflight-seatsmax,
+        seatsocc TYPE sflight-seatsocc,
+        custtype TYPE sbook-custtype,
+        smoker   TYPE sbook-smoker,
+      END OF gs_booking,
+      gt_booking LIKE TABLE OF gs_booking.
+
+DATA: BEGIN OF gs_mara,
+        matnr TYPE mara-matnr,
+        werks TYPE marc-werks,
+        ersda TYPE mara-ersda,
+        mtart TYPE mara-mtart,
+        pstat TYPE marc-pstat,
+      END OF gs_mara,
+      gt_mara LIKE TABLE OF gs_mara.
+
+DATA: BEGIN OF gs_docu,
+        bukrs TYPE bkpf-bukrs,
+        belnr TYPE bkpf-belnr,
+        gjahr TYPE bkpf-gjahr,
+        buzei TYPE bsis-buzei,
+        bktxt TYPE bkpf-bktxt,
+        mwskz TYPE bsis-mwskz,
+        kostl TYPE bsis-kostl,
+        sgtxt TYPE bsis-sgtxt,
+        shkzg TYPE bsis-shkzg,
+        wrbtr TYPE bsis-wrbtr,
+        waers TYPE bkpf-waers,
+      END OF gs_docu,
+      gt_docu LIKE TABLE OF gs_docu.
+
+DATA: BEGIN OF gs_material,
+        matnr TYPE mara-matnr,
+        ersda TYPE mara-ersda,
+        vpsta TYPE mara-vpsta,
+        pstat TYPE mara-pstat,
+        mtart TYPE mara-mtart,
+        mtbez TYPE t134t-mtbez,
+        ntgew TYPE mara-ntgew,
+        gewei TYPE mara-gewei,
+      END OF gs_material,
+      gt_material LIKE TABLE OF gs_material.
+
+
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* get data - join sql</font>
+<font color ="#0000FF">**********************************************************************</font>
+
+CLEAR: gt_schedule, gs_schedule.
+SELECT a~carrid b~connid b~cityfrom b~cityto a~carrname
+  INTO CORRESPONDING FIELDS OF TABLE gt_schedule
+  FROM scarr AS a INNER JOIN spfli AS b
+  ON a~carrid EQ b~carrid
+  WHERE b~connid BETWEEN '0400' AND '0800'.
+
+<font color ="#0000FF">*--spfli와 sflight를 inner join해서 위의 internal tabel에 data를 적재</font>
+
+CLEAR: gt_flight, gs_flight.
+SELECT a~carrid a~connid fldate airpfrom
+  airpto seatsmax seatsocc
+  INTO CORRESPONDING FIELDS OF TABLE gt_flight
+  FROM spfli AS a INNER JOIN sflight AS b
+  ON a~carrid EQ b~carrid
+  AND a~connid EQ b~connid
+  WHERE a~connid BETWEEN '0400' AND '0800'.
+
+<font color ="#0000FF">*--scarr와 spfli를 left outer join하여 internal table에 data 적재</font>
+
+SELECT a~carrid connid cityfrom cityto carrname
+  INTO CORRESPONDING FIELDS OF TABLE gt_schedule
+  FROM scarr AS a LEFT OUTER JOIN spfli AS b
+  ON a~carrid EQ b~carrid
+  WHERE a~carrid BETWEEN 'AA' AND 'ZZ'.
+
+<font color ="#0000FF">*--scarr As a inner join spfli as b inner join sflight as c</font>
+CLEAR: gt_airline, gs_airline.
+SELECT : a~carrid b~connid cityfrom cityto seatsmax seatsocc carrname
+  INTO CORRESPONDING FIELDS OF TABLE gt_airline
+  FROM scarr AS a INNER JOIN spfli AS b
+  ON a~carrid EQ b~carrid
+  INNER JOIN sflight AS c
+  ON a~carrid EQ c~carrid
+<font color ="#0000FF">*  ON b~connid EQ c~connid</font>
+  WHERE b~connid BETWEEN '0400' AND '0800'.
+
+<font color ="#0000FF">*--spfli, sflight, sbook의 inner join</font>
+CLEAR: gt_booking, gs_booking.
+SELECT a~carrid a~connid b~fldate bookid cityfrom
+  cityto seatsmax seatsocc custtype smoker
+  INTO CORRESPONDING FIELDS OF TABLE gt_booking
+  FROM spfli AS a INNER JOIN sflight AS b
+  ON a~carrid EQ b~carrid
+  AND a~connid EQ b~connid
+  INNER JOIN sbook AS c
+  ON b~carrid EQ c~carrid
+  AND b~connid EQ c~connid
+  AND b~fldate EQ c~fldate
+WHERE b~connid BETWEEN '0400' AND '0800'.
+
+<font color ="#0000FF">*--mara와 marc 테이블을 inner join하여 위의 필드 데이터를 셀렉트함</font>
+CLEAR: gs_mara, gt_mara.
+SELECT a~matnr werks ersda mtart a~pstat
+  INTO CORRESPONDING FIELDS OF TABLE gt_mara
+  FROM mara AS a INNER JOIN marc AS b
+  ON a~matnr EQ b~matnr.
+
+<font color ="#0000FF">*--bkpf와 bsis 테이블을 inner join함</font>
+CLEAR: gs_docu, gt_docu.
+SELECT a~bukrs a~belnr a~gjahr buzei bktxt mwskz kostl
+  sgtxt shkzg wrbtr a~waers
+  INTO CORRESPONDING FIELDS OF TABLE gt_docu
+  FROM bkpf AS a INNER JOIN bsis AS b
+  ON a~bukrs EQ b~bukrs
+  AND a~belnr EQ b~belnr
+  AND a~gjahr EQ b~gjahr
+  WHERE a~bukrs EQ '0001'
+  AND a~gjahr EQ '2025'
+  AND a~budat BETWEEN '20250101' AND '20250131'.
+
+<font color ="#0000FF">*--mara와 mtart의 text table을 left outer join하여 위의 data를 조회한다</font>
+CLEAR: gt_material, gs_material.
+SELECT matnr ersda vpsta pstat a~mtart mtbez ntgew gewei
+  INTO CORRESPONDING FIELDS OF TABLE gt_material
+  FROM mara AS a INNER JOIN t134t AS b
+  ON a~mtart EQ b~mtart
+  WHERE spras EQ sy-langu.
+
+cl_demo_output=&gt;display( gt_material ).
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

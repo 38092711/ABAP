@@ -1,0 +1,236 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZCL1R22010</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZCL1R22010</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  [CL1] 250115 open sql - crud</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Report ZCL1R22010</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+REPORT zcl1r22010.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* internal table and work area</font>
+<font color ="#0000FF">**********************************************************************</font>
+
+DATA: gs_bkpf TYPE zcl1bkpf22,
+      gt_bkpf TYPE TABLE OF zcl1bkpf22.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* main logic</font>
+<font color ="#0000FF">**********************************************************************</font>
+
+<font color ="#0000FF">*--insert single record</font>
+<font color ="#0000FF">*-work area를 이용해서 이용해서 insert 구문으로 single record를 생성함</font>
+CLEAR: gs_bkpf.  "사용할 work area를 clear함
+gs_bkpf-bukrs = '1000'.
+gs_bkpf-belnr = '0010000000'.
+gs_bkpf-gjahr = '2025'.
+gs_bkpf-blart = 'SA'.
+gs_bkpf-budat = '20250115'.
+gs_bkpf-bktxt = 'first document header'.
+gs_bkpf-waers = 'KRW'.
+gs_bkpf-issue_no = 'TR202501001'.
+gs_bkpf-issue_date = '20250105'.
+
+INSERT zcl1bkpf22 FROM gs_bkpf. "work area를 사용해 record를 insert함
+
+<font color ="#0000FF">*--insert multiple record</font>
+<font color ="#0000FF">*-데이터는 internal table을 이용한 insert구문으로 multiple record를 생성</font>
+CLEAR: gs_bkpf, gt_bkpf. "사용할 internal table과 work area를 clear함
+gs_bkpf-bukrs = '1000'.
+gs_bkpf-belnr = '0010000001'.
+gs_bkpf-gjahr = '2025'.
+gs_bkpf-blart = 'SA'.
+gs_bkpf-budat = '20250114'.
+gs_bkpf-bktxt = 'second document header'.
+gs_bkpf-waers = 'USD'.
+gs_bkpf-issue_no = 'TR202501002'.
+gs_bkpf-issue_date = '20250105'.
+APPEND gs_bkpf TO gt_bkpf. "work area에 넣어준 값을 internal table에 append함
+
+CLEAR: gs_bkpf.
+gs_bkpf-bukrs = '1000'.
+gs_bkpf-belnr = '0010000003'.
+gs_bkpf-gjahr = '2025'.
+gs_bkpf-blart = 'AB'.
+gs_bkpf-budat = '20250110'.
+gs_bkpf-bktxt = 'Third document header'.
+gs_bkpf-waers = 'EUR'.
+gs_bkpf-issue_no = 'TR202501003'.
+gs_bkpf-issue_date = '20250105'.
+APPEND gs_bkpf TO gt_bkpf.
+
+CLEAR: gs_bkpf.
+gs_bkpf-bukrs = '1000'.
+gs_bkpf-belnr = '0010000004'.
+gs_bkpf-gjahr = '2025'.
+gs_bkpf-blart = 'DR'.
+gs_bkpf-budat = '20250102'.
+gs_bkpf-bktxt = 'Customer invoice'.
+gs_bkpf-waers = 'KRW'.
+gs_bkpf-issue_no = 'TR202501004'.
+gs_bkpf-issue_date = '20250105'.
+APPEND gs_bkpf TO gt_bkpf.
+
+CLEAR: gs_bkpf.
+gs_bkpf-bukrs = '1000'.
+gs_bkpf-belnr = '0010000005'.
+gs_bkpf-gjahr = '2025'.
+gs_bkpf-blart = 'KR'.
+gs_bkpf-budat = '20250103'.
+gs_bkpf-bktxt = 'Vender invoice'.
+gs_bkpf-waers = 'KRW'.
+gs_bkpf-issue_no = 'TR202501005'.
+gs_bkpf-issue_date = '20250110'.
+APPEND gs_bkpf TO gt_bkpf.
+
+INSERT zcl1bkpf22 FROM TABLE gt_bkpf
+ACCEPTING DUPLICATE KEYS.
+"multiple record가 들어있는 internal table을 db table에 insert하고
+"pk 중복을 체크하기 위해 ACCEPTING DUPLICATE KEYS 이용.
+
+<font color ="#0000FF">*--update single record</font>
+<font color ="#0000FF">*-전표번호가 0010000003인</font>
+<font color ="#0000FF">*-bktxt의 내용을 'clearing document'로 update한다.</font>
+<font color ="#0000FF">*-work area를 이용한 update 구문 이용</font>
+<font color ="#0000FF">*update를 할 때는 pk와 값을 변경할 필드 뿐만 아니라</font>
+<font color ="#0000FF">*모든 일반 필드에 대해 값을 주어야 함.</font>
+
+CLEAR gs_bkpf.
+gs_bkpf-bukrs = '1000'.
+gs_bkpf-belnr = '0010000003'.
+gs_bkpf-gjahr = '2025'.
+gs_bkpf-blart = 'AB'.
+gs_bkpf-budat = '20250110'.
+gs_bkpf-bktxt = 'clearing document'.
+gs_bkpf-waers = 'EUR'.
+gs_bkpf-issue_no = 'TR202501003'.
+gs_bkpf-issue_date = '20250105'.
+
+UPDATE zcl1bkpf22 FROM gs_bkpf.
+
+<font color ="#0000FF">*--update set 구문</font>
+<font color ="#0000FF">*UPDATE zcl1bkpf22</font>
+<font color ="#0000FF">*      SET bktxt = 'clearing document'</font>
+<font color ="#0000FF">*      WHERE bukrs = '1000'</font>
+<font color ="#0000FF">*      AND belnr = '0010000003'</font>
+<font color ="#0000FF">*      AND gjahr = '2025'.</font>
+
+<font color ="#0000FF">*--select single</font>
+<font color ="#0000FF">*CLEAR gs_bkpf.</font>
+<font color ="#0000FF">*SELECT SINGLE *</font>
+<font color ="#0000FF">*  INTO CORRESPONDING FIELDS OF gs_bkpf</font>
+<font color ="#0000FF">*  FROM zcl1bkpf22</font>
+<font color ="#0000FF">*  WHERE bukrs = '1000'</font>
+<font color ="#0000FF">*      AND belnr = '0010000003'</font>
+<font color ="#0000FF">*      AND gjahr = '2025'.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*gs_bkpf-bukrs = '1000'.</font>
+<font color ="#0000FF">*gs_bkpf-belnr = '0010000003'.</font>
+<font color ="#0000FF">*gs_bkpf-gjahr = '2025'.</font>
+<font color ="#0000FF">*gs_bkpf-blart = 'AB'.</font>
+<font color ="#0000FF">*gs_bkpf-budat = '20250110'.</font>
+<font color ="#0000FF">*gs_bkpf-bktxt = 'clearing document'.</font>
+<font color ="#0000FF">*gs_bkpf-waers = 'EUR'.</font>
+<font color ="#0000FF">*gs_bkpf-issue_no = 'TR202501003'.</font>
+<font color ="#0000FF">*gs_bkpf-issue_date = '20250105'.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*UPDATE zcl1bkpf22 FROM gs_bkpf.</font>
+
+
+<font color ="#0000FF">*--update multiple record</font>
+<font color ="#0000FF">*-2개 전표의 waers를 변경.</font>
+<font color ="#0000FF">*-4번 전표는 EUR로, 5번 전표는 USD로 변경,</font>
+<font color ="#0000FF">*-internal table을 이용한 update구문 이용</font>
+CLEAR: gs_bkpf, gt_bkpf.
+gs_bkpf-bukrs = '1000'.
+gs_bkpf-belnr = '0010000004'.
+gs_bkpf-gjahr = '2025'.
+gs_bkpf-blart = 'DR'.
+gs_bkpf-budat = '20250102'.
+gs_bkpf-bktxt = 'Customer invoice'.
+gs_bkpf-waers = 'EUR'.
+gs_bkpf-issue_no = 'TR202501004'.
+gs_bkpf-issue_date = '20250105'.
+APPEND gs_bkpf TO gt_bkpf.
+
+CLEAR: gs_bkpf.
+gs_bkpf-bukrs = '1000'.
+gs_bkpf-belnr = '0010000005'.
+gs_bkpf-gjahr = '2025'.
+gs_bkpf-blart = 'KR'.
+gs_bkpf-budat = '20250103'.
+gs_bkpf-bktxt = 'Vender invoice'.
+gs_bkpf-waers = 'USD'.
+gs_bkpf-issue_no = 'TR202501005'.
+gs_bkpf-issue_date = '20250110'.
+APPEND gs_bkpf TO gt_bkpf.
+
+UPDATE zcl1bkpf22 FROM TABLE gt_bkpf.
+
+<font color ="#0000FF">*--delete single record</font>
+<font color ="#0000FF">*--1번 전표를 삭제함</font>
+<font color ="#0000FF">*single record를 선택할 것이기 때문에 모든 pk에 대해 값을 주어야 함</font>
+<font color ="#0000FF">*delete 구문에서는 삭제할 record만 선택하면 되기 때문에</font>
+<font color ="#0000FF">*update구문과 달리 pk가 아닌 일반 필드에 대해 값을 줄 필요가 없음</font>
+CLEAR: gs_bkpf.
+gs_bkpf-bukrs = '1000'.
+gs_bkpf-belnr = '0010000001'.
+gs_bkpf-gjahr = '2025'.
+
+DELETE zcl1bkpf22 FROM gs_bkpf.
+
+<font color ="#0000FF">*--delete from구문</font>
+<font color ="#0000FF">*DELETE FROM zcl1bkpf22</font>
+<font color ="#0000FF">*WHERE bukrs = '1000'</font>
+<font color ="#0000FF">*AND belnr = '0010000001'</font>
+<font color ="#0000FF">*AND gjahr = '2025'.</font>
+
+<font color ="#0000FF">*--modify single record, update</font>
+<font color ="#0000FF">*-0번 전표의 budat을 '20250115'로 변경</font>
+<font color ="#0000FF">*-modify 구문 이용</font>
+<font color ="#0000FF">*modify 구문은 pk를 기준으로 db에 동일한 pk가 있으면 record를 update해줌</font>
+
+CLEAR: gs_bkpf.
+gs_bkpf-bukrs = '1000'.
+gs_bkpf-belnr = '0010000000'.
+gs_bkpf-gjahr = '2025'.
+gs_bkpf-blart = 'SA'.
+gs_bkpf-budat = '20250115'.
+gs_bkpf-bktxt = 'first document header'.
+gs_bkpf-waers = 'KRW'.
+gs_bkpf-issue_no = 'TR202501001'.
+gs_bkpf-issue_date = '20250105'.
+
+MODIFY zcl1bkpf22 FROM gs_bkpf.
+
+<font color ="#0000FF">*--modify single record, insert</font>
+<font color ="#0000FF">*-6번 전표를 5번 전표와 동일한 내용으로 insert함</font>
+<font color ="#0000FF">*-modify 구문 이용</font>
+<font color ="#0000FF">*modify 구문은 pk를 기준으로 db에 동일한 pk가 없으면 record를 insert해줌</font>
+CLEAR: gs_bkpf.
+gs_bkpf-bukrs = '1000'.
+gs_bkpf-belnr = '0010000006'.
+gs_bkpf-gjahr = '2025'.
+gs_bkpf-blart = 'KR'.
+gs_bkpf-budat = '20250103'.
+gs_bkpf-bktxt = 'Vender invoice'.
+gs_bkpf-waers = 'USD'.
+gs_bkpf-issue_no = 'TR202501005'.
+gs_bkpf-issue_date = '20250110'.
+
+MODIFY zcl1bkpf22 FROM gs_bkpf.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

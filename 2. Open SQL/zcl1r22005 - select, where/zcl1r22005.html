@@ -1,0 +1,198 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZCL1R22005</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZCL1R22005</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  [CL1] open SQL</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Report ZCL1R22005</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+REPORT zcl1r22005.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* Internal table and work area</font>
+<font color ="#0000FF">**********************************************************************</font>
+
+DATA: BEGIN OF gs_flight,
+        connid   TYPE sflight-connid,
+        fldate   TYPE sflight-fldate,
+        seatsocc TYPE sflight-seatsocc,
+      END OF gs_flight,
+      gt_flight LIKE TABLE OF gs_flight.
+
+DATA : BEGIN OF gs_unique,
+         carrid TYPE sflight-carrid,
+         connid TYPE sflight-connid,
+       END OF gs_unique,
+       gt_unique LIKE TABLE OF gs_unique.
+
+DATA: BEGIN OF gs_airline,
+        carrid   TYPE scarr-carrid,
+        carrname TYPE scarr-carrname,
+        currcode TYPE scarr-currcode,
+      END OF gs_airline,
+      gt_airline LIKE TABLE OF gs_airline.
+
+<font color ="#0000FF">*DATA gt_scarr LIKE gt_airline.</font>
+
+
+<font color ="#0000FF">*DATA : BEGIN OF gs_t007s,</font>
+<font color ="#0000FF">*         spras TYPE t007s-spras,</font>
+<font color ="#0000FF">*         kalsm TYPE t007s-kalsm,</font>
+<font color ="#0000FF">*         mwskz TYPE t007s-mwskz,</font>
+<font color ="#0000FF">*         text1 TYPE t007s-text1,</font>
+<font color ="#0000FF">*       END OF gs_t007s,</font>
+<font color ="#0000FF">*       gt_t007s LIKE TABLE OF gs_t007s.</font>
+
+DATA: gt_t007s TYPE TABLE OF t007s,
+      gs_t007s LIKE LINE OF gt_t007s.
+
+
+DATA: gs_cskt TYPE cskt,
+      gt_cskt TYPE TABLE OF cskt.
+
+DATA: gs_scarr TYPE scarr,
+      gt_scarr LIKE TABLE OF gs_scarr.
+
+DATA: gs_sflight TYPE sflight,
+      gt_sflight TYPE TABLE OF sflight.
+
+DATA: gs_sbook TYPE sbook,
+      gt_sbook TYPE TABLE OF sbook.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">*Get data</font>
+<font color ="#0000FF">**********************************************************************</font>
+
+CLEAR: gs_flight, gt_flight.
+SELECT connid fldate seatsocc
+  FROM sflight
+  INTO TABLE gt_flight
+  WHERE seatsocc GT 200 " &gt; 200
+  ORDER BY connid DESCENDING seatsocc ASCENDING.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">*scarr table로부터 carrid, carrname, cuurcode 데이터를 select하고</font>
+<font color ="#0000FF">*currcode가 'EUR'인 데이터만 조회한다</font>
+<font color ="#0000FF">**********************************************************************</font>
+
+CLEAR: gs_airline, gt_airline.
+SELECT carrid carrname currcode
+  FROM scarr
+  INTO TABLE gt_airline
+  WHERE currcode EQ 'EUR'
+  ORDER BY carrid.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">*sflight table로부터 carrid, connid를 unique하게 데이터를 select한다</font>
+<font color ="#0000FF">*seatsocc가 200보다 큰 데이터를 대상으로 함</font>
+<font color ="#0000FF">*DISTINCT 실습</font>
+<font color ="#0000FF">**********************************************************************</font>
+
+CLEAR: gs_unique, gt_unique.
+SELECT DISTINCT carrid connid
+  FROM sflight
+  INTO TABLE gt_unique
+  WHERE seatsocc GT 200.
+
+<font color ="#0000FF">*SELECT carrid carrname url</font>
+<font color ="#0000FF">*  INTO CORRESPONDING FIELDS OF TABLE gt_scarr</font>
+<font color ="#0000FF">*  FROM scarr.</font>
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">*MWSKZ의 text table과 동일한 layout의 internal table을 선언한다</font>
+<font color ="#0000FF">*mwskz의 text table을 찾아서 그 테이블의 전체 field를 select 함.</font>
+<font color ="#0000FF">*t007s 선택조건: spras eq sy-langu AND kalsm eq 'taxkr'</font>
+<font color ="#0000FF">**********************************************************************</font>
+
+<font color ="#0000FF">*CLEAR: gs_t007s, gt_t007s.</font>
+<font color ="#0000FF">*SELECT spras kalsm mwskz text1</font>
+<font color ="#0000FF">*  FROM t007s</font>
+<font color ="#0000FF">*  INTO TABLE gt_t007s</font>
+<font color ="#0000FF">*  WHERE spras EQ sy-langu</font>
+<font color ="#0000FF">*  AND kalsm EQ 'TAXKR'.</font>
+
+
+CLEAR: gs_t007s, gt_t007s.
+SELECT spras kalsm mwskz text1
+  FROM t007s
+  INTO CORRESPONDING FIELDS OF TABLE gt_t007s
+  WHERE spras EQ sy-langu
+  AND kalsm EQ 'TAXKR'.
+
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">*코스트센터(KOSTL)의 text table로부터</font>
+<font color ="#0000FF">*모든 필드들을 읽어와 internal table에 세팅한다</font>
+<font color ="#0000FF">*조건: spras EQ sy-langu AND kokrs EQ '0001'.</font>
+<font color ="#0000FF">**********************************************************************</font>
+
+CLEAR: gs_cskt, gt_cskt.
+SELECT spras kokrs kostl datbi ktext ltext mctxt
+FROM cskt
+  INTO CORRESPONDING FIELDS OF TABLE gt_cskt
+  WHERE spras EQ sy-langu
+  AND kokrs EQ '0001'.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">*scarr와 동일한 layout의 internal table을 선언하고</font>
+<font color ="#0000FF">*tabledmf select하여 internal table에 데이터를 저장</font>
+<font color ="#0000FF">*select 조건: carrid가 'AA'와 'DL' 사이의 모든 데이터</font>
+<font color ="#0000FF">**********************************************************************</font>
+
+<font color ="#0000FF">*CLEAR: gs_scarr, gt_scarr.</font>
+<font color ="#0000FF">*SELECT carrid carrname currcode url</font>
+<font color ="#0000FF">*FROM scarr</font>
+<font color ="#0000FF">*  INTO CORRESPONDING FIELDS OF TABLE gt_scarr</font>
+<font color ="#0000FF">*  WHERE carrid BETWEEN 'AA' AND 'DL'</font>
+<font color ="#0000FF">*  ORDER BY carrid.</font>
+
+
+<font color ="#0000FF">*--AA, AB, CA, LH만 보기</font>
+
+CLEAR: gs_scarr, gt_scarr.
+SELECT carrid carrname currcode url
+FROM scarr
+  INTO CORRESPONDING FIELDS OF TABLE gt_scarr
+  WHERE carrid IN ( 'AA', 'AB', 'CA', 'LH' )
+  ORDER BY carrid.
+
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">*3. sflight table에서 아래의 정보를 select하여 internal table에 저장</font>
+<font color ="#0000FF">*carrid, connind</font>
+<font color ="#0000FF">**********************************************************************</font>
+
+CLEAR: gs_sflight, gt_sflight.
+SELECT carrid connid fldate price currency
+  planetype seatsmax seatsocc paymentsum
+  FROM sflight
+  INTO CORRESPONDING FIELDS OF TABLE gt_sflight
+  WHERE carrid IN ( 'AZ' ,'QF' )
+  AND planetype LIKE 'A%'.
+
+
+CLEAR: gs_sbook, gt_sbook.
+SELECT carrid connid fldate bookid customid
+  custtype smoker invoice forcuram
+  FROM sbook
+  INTO CORRESPONDING FIELDS OF TABLE gt_sbook
+  WHERE fldate BETWEEN '20241010' AND '20241020'
+  AND forcuram &gt;= 800.
+
+
+
+cl_demo_output=&gt;display( gt_sbook ).
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

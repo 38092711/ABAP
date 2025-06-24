@@ -1,0 +1,118 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZCL1R22016</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZCL1R22016</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  [CL1] open sql 실습</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Report ZCL1R22016</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+REPORT zcl1r22016 MESSAGE-ID zc1msg22.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* tables</font>
+<font color ="#0000FF">**********************************************************************</font>
+TABLES : mara, t134t.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* internal table and work area</font>
+<font color ="#0000FF">**********************************************************************</font>
+
+DATA: BEGIN OF gs_material,
+        matnr TYPE mara-matnr,
+        ersda TYPE mara-ersda,
+        vpsta TYPE mara-vpsta,
+        pstat TYPE mara-pstat,
+        mtart TYPE mara-mtart,
+        mtbez TYPE t134t-mtbez,
+        ntgew TYPE mara-ntgew,
+        gewei TYPE mara-gewei,
+      END OF gs_material,
+      gt_material LIKE TABLE OF gs_material.
+
+DATA: gt_t134t  TYPE TABLE OF t134t,
+      gs_t134t  TYPE t134t,
+      gt_backup TYPE TABLE OF t134t,
+      gs_backup TYPE t134t,
+      gv_tabix  TYPE sy-tabix.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* selection screen</font>
+<font color ="#0000FF">**********************************************************************</font>
+
+SELECTION-SCREEN BEGIN OF BLOCK pa1 WITH FRAME TITLE TEXT-t01.
+  SELECT-OPTIONS so_matnr FOR mara-matnr DEFAULT 'C7HSA' TO 'MEGA_125'
+  SIGN I OPTION BT NO-EXTENSION.
+SELECTION-SCREEN END OF BLOCK pa1.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* main routine</font>
+<font color ="#0000FF">**********************************************************************</font>
+
+CLEAR: gs_material, gt_material.
+SELECT matnr ersda vpsta pstat mtart ntgew gewei
+  INTO CORRESPONDING FIELDS OF TABLE gt_material
+  FROM mara
+  WHERE matnr in so_matnr.
+
+<font color ="#0000FF">*--message</font>
+"이후에 추가 작업을 할 필요가 없을 땐 stop으로 프로세스의 낭비를 막아야 함
+IF gt_material IS INITIAL.
+  MESSAGE s001 DISPLAY LIKE 'E'.
+  STOP.
+ELSE.
+  MESSAGE s000 WITH sy-dbcnt.
+ENDIF.
+
+<font color ="#0000FF">*--get mtbez</font>
+CLEAR: gs_t134t, gt_t134t.
+SELECT mtart mtbez
+  INTO CORRESPONDING FIELDS OF TABLE gt_t134t
+  FROM t134t
+  WHERE spras EQ sy-langu.
+
+
+MOVE-CORRESPONDING gt_t134t TO gt_backup.
+SORT gt_backup BY mtart ASCENDING.
+DELETE ADJACENT DUPLICATES FROM gt_backup COMPARING mtart.
+
+LOOP AT gt_material INTO gs_material.
+  gv_tabix = sy-tabix.
+
+  CLEAR gs_backup.
+  READ TABLE gt_backup INTO gs_backup WITH KEY mtart = gs_material-mtart
+  BINARY SEARCH.
+
+  IF sy-subrc EQ 0.
+    gs_material-mtbez = gs_backup-mtbez.
+  ENDIF.
+
+  MODIFY gt_material FROM gs_material INDEX gv_tabix TRANSPORTING mtbez.
+
+ENDLOOP.
+
+
+
+
+cl_demo_output=&gt;display( gt_material ).
+
+
+<font color ="#0000FF">*Messages</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">* Message class: ZC1MSG22</font>
+<font color ="#0000FF">*000   & 건이 조회되었습니다</font>
+<font color ="#0000FF">*001   조회된 데이터가 없습니다</font>
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>
